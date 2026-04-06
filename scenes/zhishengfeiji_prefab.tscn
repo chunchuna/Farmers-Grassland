@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://cjtjyu3y4ms0x"]
+
+[ext_resource type="Script" uid="uid://bloky0ya6jo8w" path="res://scenes/zhishengfeiji_prefab.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://21tviw5pov7c" path="res://Assest/ZhiShengFeiJi/ZhiShengFeiJi.glb" id="2_model"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1"]
+size = Vector3(0.3456421, 0.31201172, 0.6904297)
+
+[node name="ZhishengfeijiPrefab" type="StaticBody3D" unique_id=426533777]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 0)
+script = ExtResource("1_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=403671016]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.024505625, -0.059814457, -0.08349612)
+shape = SubResource("BoxShape3D_1")
+
+[node name="Model" parent="." unique_id=534003473 instance=ExtResource("2_model")]

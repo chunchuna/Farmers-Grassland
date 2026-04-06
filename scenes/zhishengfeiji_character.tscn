@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://bvn7my8c5y4dk"]
+
+[ext_resource type="PackedScene" uid="uid://21tviw5pov7c" path="res://Assest/ZhiShengFeiJi/ZhiShengFeiJi.glb" id="2_sc6m3"]
+
+[node name="ZhishengfeijiCharacter" type="StaticBody3D" unique_id=1880253048]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 0)
+
+[node name="Model" parent="." unique_id=725656264 instance=ExtResource("2_sc6m3")]
