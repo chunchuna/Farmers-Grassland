@@ -3,6 +3,7 @@ extends Node3D
 ## Weather system using CPUParticles3D (compatible with GL Compatibility renderer).
 ## All weather parameters are exported — select the WeatherSystem node in the
 ## scene tree and tweak values in the Inspector.
+## Weather is synced across multiplayer via RPC.
 
 enum WeatherType { CLEAR, RAIN, SNOW }
 
@@ -27,8 +28,8 @@ enum WeatherType { CLEAR, RAIN, SNOW }
 @export var rain_sun_color := Color(0.5, 0.55, 0.65, 1)
 @export var rain_sun_energy := 0.3
 @export var rain_glow_intensity := 0.2
-@export var rain_particle_count := 3000
-@export var rain_particle_color := Color(0.7, 0.75, 0.85, 0.5)
+@export var rain_particle_count := 4000
+@export var rain_particle_color := Color(0.6, 0.65, 0.8, 0.6)
 
 ## ─── SNOW weather settings ───
 @export_group("Snow Weather")
@@ -40,7 +41,7 @@ enum WeatherType { CLEAR, RAIN, SNOW }
 @export var snow_sun_energy := 0.4
 @export var snow_glow_intensity := 0.6
 @export var snow_particle_count := 2000
-@export var snow_particle_color := Color(0.95, 0.95, 1.0, 0.85)
+@export var snow_particle_color := Color(0.9, 0.92, 1.0, 0.9)
 
 var _rain_particles: CPUParticles3D
 var _snow_particles: CPUParticles3D
@@ -53,7 +54,15 @@ func _ready() -> void:
 	var world_env := _find_typed_in_tree(get_tree().root, &"WorldEnvironment")
 	if world_env:
 		_env = (world_env as WorldEnvironment).environment
+		print("WeatherSystem: Found WorldEnvironment")
+	else:
+		push_warning("WeatherSystem: WorldEnvironment not found!")
+
 	_sun = _find_typed_in_tree(get_tree().root, &"DirectionalLight3D") as DirectionalLight3D
+	if _sun:
+		print("WeatherSystem: Found DirectionalLight3D")
+		# Make sure sun is visible
+		_sun.visible = true
 
 	# Create CPU particle systems (GL Compatibility compatible)
 	_rain_particles = _create_rain_particles()
@@ -64,16 +73,31 @@ func _ready() -> void:
 	add_child(_snow_particles)
 	_snow_particles.emitting = false
 
+	print("WeatherSystem: Ready (rain=%d particles, snow=%d particles)" % [_rain_particles.amount, _snow_particles.amount])
+
 	# Apply initial weather
-	set_weather(current_weather)
+	_apply_weather_local(current_weather)
 
 
-func set_weather(weather: WeatherType) -> void:
-	current_weather = weather
+## Call this from the debug panel. Handles multiplayer sync automatically.
+func set_weather(weather: int) -> void:
+	if multiplayer.has_multiplayer_peer() and not multiplayer.is_server():
+		# Client: ask server to change weather
+		_rpc_request_weather.rpc_id(1, weather)
+	else:
+		# Server or single-player: apply directly and broadcast
+		_apply_weather_local(weather)
+		if multiplayer.has_multiplayer_peer():
+			_rpc_sync_weather.rpc(weather)
+
+
+## Apply weather locally (no network).
+func _apply_weather_local(weather: int) -> void:
+	current_weather = weather as WeatherType
 	_rain_particles.emitting = false
 	_snow_particles.emitting = false
 
-	match weather:
+	match current_weather:
 		WeatherType.CLEAR:
 			_apply_clear()
 		WeatherType.RAIN:
@@ -81,7 +105,7 @@ func set_weather(weather: WeatherType) -> void:
 		WeatherType.SNOW:
 			_apply_snow()
 
-	print("Weather changed to: %s" % WeatherType.keys()[weather])
+	print("WeatherSystem: Weather set to %s" % WeatherType.keys()[current_weather])
 
 
 func _apply_clear() -> void:
@@ -94,12 +118,14 @@ func _apply_clear() -> void:
 		_env.fog_density = clear_fog_density
 		_env.glow_intensity = clear_glow_intensity
 	if _sun:
+		_sun.visible = true
 		_sun.light_color = clear_sun_color
 		_sun.light_energy = clear_sun_energy
 
 
 func _apply_rain() -> void:
 	_rain_particles.emitting = true
+	print("WeatherSystem: Rain particles emitting=%s, amount=%d, pos=%s" % [_rain_particles.emitting, _rain_particles.amount, _rain_particles.global_position])
 	if _env:
 		var sky_mat := _env.sky.sky_material as ProceduralSkyMaterial
 		if sky_mat:
@@ -109,12 +135,14 @@ func _apply_rain() -> void:
 		_env.fog_density = rain_fog_density
 		_env.glow_intensity = rain_glow_intensity
 	if _sun:
+		_sun.visible = true
 		_sun.light_color = rain_sun_color
 		_sun.light_energy = rain_sun_energy
 
 
 func _apply_snow() -> void:
 	_snow_particles.emitting = true
+	print("WeatherSystem: Snow particles emitting=%s, amount=%d, pos=%s" % [_snow_particles.emitting, _snow_particles.amount, _snow_particles.global_position])
 	if _env:
 		var sky_mat := _env.sky.sky_material as ProceduralSkyMaterial
 		if sky_mat:
@@ -124,6 +152,7 @@ func _apply_snow() -> void:
 		_env.fog_density = snow_fog_density
 		_env.glow_intensity = snow_glow_intensity
 	if _sun:
+		_sun.visible = true
 		_sun.light_color = snow_sun_color
 		_sun.light_energy = snow_sun_energy
 
@@ -135,33 +164,43 @@ func _process(_delta: float) -> void:
 		global_position = cam.global_position
 
 
+# ─── Particle creation ───
+
 func _create_rain_particles() -> CPUParticles3D:
 	var p := CPUParticles3D.new()
 	p.name = "RainParticles"
 	p.amount = rain_particle_count
-	p.lifetime = 1.5
+	p.lifetime = 1.8
 	p.speed_scale = 1.5
 	p.randomness = 0.1
+	p.fixed_fps = 60
 
-	# Emission: box above player
+	# Emission: large box above player
 	p.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
-	p.emission_box_extents = Vector3(20, 0.5, 20)
+	p.emission_box_extents = Vector3(20, 1, 20)
 
 	# Movement
 	p.direction = Vector3(0, -1, 0)
-	p.spread = 5.0
-	p.initial_velocity_min = 18.0
-	p.initial_velocity_max = 25.0
-	p.gravity = Vector3(0, -12, 0)
+	p.spread = 3.0
+	p.initial_velocity_min = 20.0
+	p.initial_velocity_max = 30.0
+	p.gravity = Vector3(0, -15, 0)
 
-	# Appearance
-	p.scale_amount_min = 0.015
-	p.scale_amount_max = 0.025
+	# Scale — use larger values so particles are clearly visible
+	p.scale_amount_min = 1.0
+	p.scale_amount_max = 1.0
+
+	# Color
 	p.color = rain_particle_color
 
-	# Raindrop mesh: thin tall box
+	# Raindrop mesh with material
 	var mesh := BoxMesh.new()
-	mesh.size = Vector3(0.03, 0.8, 0.03)
+	mesh.size = Vector3(0.02, 0.5, 0.02)
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = rain_particle_color
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mesh.material = mat
 	p.mesh = mesh
 
 	# Position above camera
@@ -173,38 +212,63 @@ func _create_snow_particles() -> CPUParticles3D:
 	var p := CPUParticles3D.new()
 	p.name = "SnowParticles"
 	p.amount = snow_particle_count
-	p.lifetime = 5.0
+	p.lifetime = 6.0
 	p.speed_scale = 1.0
-	p.randomness = 0.3
+	p.randomness = 0.4
+	p.fixed_fps = 30
 
-	# Emission: box above player
+	# Emission: large box above player
 	p.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
-	p.emission_box_extents = Vector3(20, 0.5, 20)
+	p.emission_box_extents = Vector3(20, 1, 20)
 
 	# Movement — slow drift
 	p.direction = Vector3(0, -1, 0)
-	p.spread = 25.0
-	p.initial_velocity_min = 1.0
-	p.initial_velocity_max = 2.5
-	p.gravity = Vector3(0.3, -1.5, 0.2)
+	p.spread = 30.0
+	p.initial_velocity_min = 0.8
+	p.initial_velocity_max = 2.0
+	p.gravity = Vector3(0.3, -1.2, 0.2)
 
-	# Appearance
-	p.scale_amount_min = 0.04
-	p.scale_amount_max = 0.1
+	# Scale
+	p.scale_amount_min = 1.0
+	p.scale_amount_max = 1.5
+
+	# Color
 	p.color = snow_particle_color
 
-	# Snowflake mesh: small sphere
+	# Snowflake mesh with material
 	var mesh := SphereMesh.new()
-	mesh.radius = 0.06
-	mesh.height = 0.12
-	mesh.radial_segments = 6
-	mesh.rings = 3
+	mesh.radius = 0.05
+	mesh.height = 0.1
+	mesh.radial_segments = 8
+	mesh.rings = 4
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = snow_particle_color
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mesh.material = mat
 	p.mesh = mesh
 
 	# Position above camera
 	p.position = Vector3(0, 15, 0)
 	return p
 
+
+# ─── Multiplayer RPCs ───
+
+## Client → Server: request weather change
+@rpc("any_peer", "call_remote", "reliable")
+func _rpc_request_weather(weather: int) -> void:
+	if multiplayer.is_server():
+		_apply_weather_local(weather)
+		_rpc_sync_weather.rpc(weather)
+
+
+## Server → All Clients: sync weather state
+@rpc("authority", "call_remote", "reliable")
+func _rpc_sync_weather(weather: int) -> void:
+	_apply_weather_local(weather)
+
+
+# ─── Utility ───
 
 func _find_typed_in_tree(root: Node, type_name: StringName) -> Node:
 	if root.get_class() == type_name:

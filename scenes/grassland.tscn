@@ -147,8 +147,7 @@ environment = SubResource("Environment_1")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1946022508]
 transform = Transform3D(-0.5943767, 0.77947974, -0.19780819, -0.093115, 0.17760977, 0.97968245, 0.7987776, 0.6007279, -0.03297293, 0, 30, 0)
-visible = false
-light_color = Color(8.4604834e-10, 0.0024698877, 0.002555675, 1)
+light_color = Color(1, 0.95, 0.85, 1)
 light_energy = 0.7
 light_angular_distance = 1.0
 shadow_enabled = true
@@ -206,9 +205,6 @@ metadata/SimpleGrassTextured = "2.0.5"
 
 [node name="WeatherSystem" type="Node3D" parent="." unique_id=775908704]
 script = ExtResource("8_weather")
-clear_fog_color = Color(0.056327544, 0.076258935, 0.042303078, 1)
-clear_sun_color = Color(0.099136405, 0.06212774, 6.016344e-09, 1)
-snow_sun_color = Color(0.061932728, 0.037903894, 0.19993442, 1)
 
 [node name="DebugPanel" type="CanvasLayer" parent="." unique_id=682373211]
 script = ExtResource("9_debug")

@@ -13,9 +13,16 @@ func _ready() -> void:
 	_build_ui()
 	_panel.visible = false
 
-	# Find or create weather system
+	# Find weather system (wait a frame so scene is fully loaded)
 	await get_tree().process_frame
 	_weather_system = get_tree().root.get_node_or_null("Grassland/WeatherSystem")
+	if not _weather_system:
+		# Fallback: search all children
+		_weather_system = _find_node_by_name(get_tree().root, "WeatherSystem")
+	if _weather_system:
+		print("DebugPanel: Found WeatherSystem at %s" % _weather_system.get_path())
+	else:
+		push_warning("DebugPanel: WeatherSystem not found!")
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -144,14 +151,33 @@ func _create_button(text: String, color: Color) -> Button:
 
 func _on_weather_clear() -> void:
 	if _weather_system and _weather_system.has_method("set_weather"):
+		print("DebugPanel: Setting weather to CLEAR")
 		_weather_system.set_weather(0)  # WeatherType.CLEAR
+	else:
+		push_warning("DebugPanel: WeatherSystem not available")
 
 
 func _on_weather_rain() -> void:
 	if _weather_system and _weather_system.has_method("set_weather"):
+		print("DebugPanel: Setting weather to RAIN")
 		_weather_system.set_weather(1)  # WeatherType.RAIN
+	else:
+		push_warning("DebugPanel: WeatherSystem not available")
 
 
 func _on_weather_snow() -> void:
 	if _weather_system and _weather_system.has_method("set_weather"):
+		print("DebugPanel: Setting weather to SNOW")
 		_weather_system.set_weather(2)  # WeatherType.SNOW
+	else:
+		push_warning("DebugPanel: WeatherSystem not available")
+
+
+func _find_node_by_name(root: Node, node_name: String) -> Node:
+	if root.name == node_name:
+		return root
+	for child in root.get_children():
+		var found := _find_node_by_name(child, node_name)
+		if found:
+			return found
+	return null
