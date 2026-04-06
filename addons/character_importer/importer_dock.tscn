@@ -1,0 +1,56 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://addons/character_importer/importer_dock.gd" id="1"]
+
+[node name="ImporterDock" type="VBoxContainer"]
+script = ExtResource("1")
+custom_minimum_size = Vector2(250, 0)
+
+[node name="Title" type="Label" parent="."]
+text = "Character Importer"
+horizontal_alignment = 1
+
+[node name="Sep1" type="HSeparator" parent="."]
+
+[node name="FolderLabel" type="Label" parent="."]
+text = "GLB Folder:"
+
+[node name="FolderRow" type="HBoxContainer" parent="."]
+
+[node name="FolderPath" type="LineEdit" parent="FolderRow"]
+size_flags_horizontal = 3
+placeholder_text = "res://Assest/Walker"
+
+[node name="BrowseBtn" type="Button" parent="FolderRow"]
+text = "..."
+custom_minimum_size = Vector2(30, 0)
+
+[node name="Sep2" type="HSeparator" parent="."]
+
+[node name="AnimLabel" type="Label" parent="."]
+text = "Animation Mapping (auto-detected):"
+
+[node name="AnimList" type="ItemList" parent="."]
+custom_minimum_size = Vector2(0, 120)
+
+[node name="Sep3" type="HSeparator" parent="."]
+
+[node name="OutputLabel" type="Label" parent="."]
+text = "Output Scene Path:"
+
+[node name="OutputPath" type="LineEdit" parent="."]
+placeholder_text = "res://scenes/walker_character.tscn"
+
+[node name="Sep4" type="HSeparator" parent="."]
+
+[node name="GenerateBtn" type="Button" parent="."]
+text = "Generate Character Scene"
+custom_minimum_size = Vector2(0, 35)
+
+[node name="Sep5" type="HSeparator" parent="."]
+
+[node name="StatusLabel" type="RichTextLabel" parent="."]
+custom_minimum_size = Vector2(0, 80)
+bbcode_enabled = true
+text = "Select a folder containing GLB files to begin."
+fit_content = true

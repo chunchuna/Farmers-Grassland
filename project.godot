@@ -21,7 +21,7 @@ SimpleGrass="*res://addons/simplegrasstextured/singleton.tscn"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/simplegrasstextured/plugin.cfg", "res://addons/terrain_3d/plugin.cfg")
+enabled=PackedStringArray("res://addons/character_importer/plugin.cfg", "res://addons/simplegrasstextured/plugin.cfg", "res://addons/terrain_3d/plugin.cfg")
 
 [physics]
 

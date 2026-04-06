@@ -1,9 +1,11 @@
+@tool
 extends Node3D
 
-## Builds the walker character model at runtime by loading the base mesh from
+## Builds the walker character model by loading the base mesh from
 ## walker.glb and merging walk/run animations from separate GLB files into one
 ## AnimationPlayer. Sets up an AnimationTree with a BlendSpace1D for smooth
 ## idle → walk → run transitions driven by speed.
+## @tool is safe here: GLB models are external resource references, not baked mesh data.
 
 const IDLE_SCENE := preload("res://Assest/Walker/walker.glb")
 const WALK_SCENE := preload("res://Assest/Walker/walker_walk.glb")
@@ -11,9 +13,16 @@ const RUN_SCENE := preload("res://Assest/Walker/walker_run.glb")
 
 var anim_tree: AnimationTree
 var _anim_player: AnimationPlayer
+var _built := false
 
 
 func _ready() -> void:
+	if _built:
+		return
+	# Clear any leftover children from previous editor reload
+	for child in get_children():
+		child.queue_free()
+	await get_tree().process_frame
 	_build_model()
 	_setup_animation_tree()
 
@@ -23,6 +32,8 @@ func _build_model() -> void:
 	var idle_instance: Node3D = IDLE_SCENE.instantiate()
 	idle_instance.name = "WalkerMesh"
 	add_child(idle_instance)
+	if Engine.is_editor_hint() and get_tree().edited_scene_root:
+		idle_instance.owner = get_tree().edited_scene_root
 
 	# Find the AnimationPlayer
 	_anim_player = _find_typed(idle_instance, &"AnimationPlayer") as AnimationPlayer
@@ -46,6 +57,7 @@ func _build_model() -> void:
 	# Import run animation
 	_import_animation(RUN_SCENE, &"run", lib)
 
+	_built = true
 	print("WalkerModel: Animations loaded: ", _anim_player.get_animation_list())
 
 
