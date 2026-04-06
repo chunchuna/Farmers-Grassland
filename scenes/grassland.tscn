@@ -108,7 +108,7 @@ normal_texture = ExtResource("1_xbit7")
 mesh_list = Array[Terrain3DMeshAsset]([SubResource("Terrain3DMeshAsset_mmgue")])
 texture_list = Array[Terrain3DTextureAsset]([SubResource("Terrain3DTextureAsset_04mbe")])
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_chrg4"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_k4blr"]
 render_priority = 0
 shader = ExtResource("6_chrg4")
 shader_parameter/albedo = Color(1, 1, 1, 1)
@@ -179,7 +179,7 @@ script = ExtResource("5_gm")
 [node name="SpawnContainer" type="Node" parent="GameManager" unique_id=1224011083]
 
 [node name="Grass" type="MultiMeshInstance3D" parent="." unique_id=1852298074]
-material_override = SubResource("ShaderMaterial_chrg4")
+material_override = SubResource("ShaderMaterial_k4blr")
 custom_aabb = AABB(2147483600, 2147483600, 2147483600, -4294967300, -4294967300, -4294967300)
 multimesh = SubResource("MultiMesh_ooa1f")
 script = ExtResource("6_sgt")

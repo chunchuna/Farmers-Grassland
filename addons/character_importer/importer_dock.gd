@@ -2,8 +2,8 @@
 extends VBoxContainer
 
 ## Editor dock that scans a folder of GLB files, detects animations,
-## and generates a ready-to-use character scene with merged AnimationPlayer
-## and AnimationTree (BlendSpace1D: idle/walk/run).
+## and generates a ready-to-use prefab scene with merged AnimationPlayer,
+## optional collision body, optional physics, and @export toggles.
 
 var editor_plugin = null  # Set by plugin.gd after instantiation
 
@@ -27,6 +27,14 @@ func _ready() -> void:
 	$FolderRow/BrowseBtn.pressed.connect(_on_browse)
 	$FolderRow/FolderPath.text_submitted.connect(_on_folder_entered)
 	$GenerateBtn.pressed.connect(_on_generate)
+	# Physics implies collision
+	$PhysicsCheck.toggled.connect(func(on: bool):
+		if on:
+			$CollisionCheck.button_pressed = true
+			$CollisionCheck.disabled = true
+		else:
+			$CollisionCheck.disabled = false
+	)
 
 
 func _on_browse() -> void:
@@ -91,7 +99,7 @@ func _scan_folder(folder_path: String) -> void:
 
 	# Auto-fill output path
 	var char_name := folder_path.get_file().to_lower()
-	$OutputPath.text = "res://scenes/%s_character.tscn" % char_name
+	$OutputPath.text = "res://scenes/%s_prefab.tscn" % char_name
 
 	_set_status("[color=green]Found %d GLB files. Base model: %s[/color]" % [
 		_glb_files.size(), _base_glb.get_file()])
@@ -114,30 +122,58 @@ func _on_generate() -> void:
 		_set_status("[color=red]Please specify an output scene path.[/color]")
 		return
 
-	_set_status("Generating character scene...")
+	var want_collision: bool = $CollisionCheck.button_pressed
+	var want_physics: bool = $PhysicsCheck.button_pressed
+	var model_scale: float = $ScaleRow/ScaleSpinBox.value
 
-	# Generate the @tool script for this character
+	_set_status("Generating prefab...")
+
+	# Generate the @tool script
 	var script_path := output_path.get_basename() + ".gd"
-	_generate_character_script(script_path)
+	_generate_character_script(script_path, want_collision, want_physics)
 
 	# Generate the .tscn scene file
-	_generate_character_scene(output_path, script_path)
+	_generate_character_scene(output_path, script_path, want_collision, want_physics, model_scale)
 
-	_set_status("[color=green]Done! Created:\n• %s\n• %s\n\nOpen the scene to preview the model and animations.[/color]" % [
+	_set_status("[color=green]Done! Created:\n• %s\n• %s\n\nDrag the .tscn into your scene to use it.\nSelect the node to adjust collision/physics in Inspector.[/color]" % [
 		output_path, script_path])
 
 	# Refresh filesystem
 	EditorInterface.get_resource_filesystem().scan()
 
 
-func _generate_character_script(script_path: String) -> void:
+func _generate_character_script(script_path: String, want_collision: bool, want_physics: bool) -> void:
 	var lines: PackedStringArray = []
+
+	# Determine base type
+	var base_type := "Node3D"
+	if want_physics:
+		base_type = "RigidBody3D"
+	elif want_collision:
+		base_type = "StaticBody3D"
+
 	lines.append("@tool")
-	lines.append("extends Node3D")
+	lines.append("extends %s" % base_type)
 	lines.append("")
-	lines.append("## Auto-generated character model with merged animations.")
+	lines.append("## Auto-generated prefab with merged animations.")
 	lines.append("## Supports editor preview (@tool) and runtime animation blending.")
+	lines.append("## Drag this .tscn into your scene to use it.")
 	lines.append("")
+
+	# @export toggles for collision and physics
+	if want_collision or want_physics:
+		lines.append("@export_group(\"Physics & Collision\")")
+		lines.append("@export var collision_enabled := true:")
+		lines.append("\tset(val):")
+		lines.append("\t\tcollision_enabled = val")
+		lines.append("\t\t_update_collision()")
+		lines.append("")
+		if want_physics:
+			lines.append("@export var physics_enabled := true:")
+			lines.append("\tset(val):")
+			lines.append("\t\tphysics_enabled = val")
+			lines.append("\t\t_update_physics()")
+			lines.append("")
 
 	# Preload lines
 	for entry in _glb_files:
@@ -147,6 +183,7 @@ func _generate_character_script(script_path: String) -> void:
 
 	lines.append("var anim_tree: AnimationTree")
 	lines.append("var _anim_player: AnimationPlayer")
+	lines.append("var _collision_shape: CollisionShape3D")
 	lines.append("var _built := false")
 	lines.append("")
 	lines.append("")
@@ -155,13 +192,22 @@ func _generate_character_script(script_path: String) -> void:
 	lines.append("\t\treturn")
 	lines.append("\t_build_model()")
 	lines.append("\t_setup_animation_tree()")
+	if want_collision or want_physics:
+		lines.append("\t_setup_collision()")
 	lines.append("")
 	lines.append("")
+
+	# Build model function
 	lines.append("func _build_model() -> void:")
-	lines.append("\t# Clear previous children (editor reload)")
-	lines.append("\tfor child in get_children():")
-	lines.append("\t\tchild.queue_free()")
-	lines.append("\tawait get_tree().process_frame")
+	lines.append("\t# Find existing Model child or instantiate new one")
+	lines.append('\tvar existing := get_node_or_null("Model")')
+	lines.append("\tif existing:")
+	lines.append("\t\t_anim_player = _find_typed(existing, &\"AnimationPlayer\") as AnimationPlayer")
+	lines.append("\t\tif _anim_player:")
+	lines.append("\t\t\tvar lib: AnimationLibrary = _anim_player.get_animation_library(&\"\")")
+	lines.append("\t\t\t_rename_and_import_anims(lib)")
+	lines.append("\t\t\t_built = true")
+	lines.append("\t\t\treturn")
 	lines.append("")
 
 	# Instance base model
@@ -179,36 +225,34 @@ func _generate_character_script(script_path: String) -> void:
 	lines.append("")
 	lines.append("\t_anim_player = _find_typed(base_instance, &\"AnimationPlayer\") as AnimationPlayer")
 	lines.append("\tif not _anim_player:")
-	lines.append('\t\tpush_error("CharacterModel: No AnimationPlayer found")')
+	lines.append('\t\tpush_error("Prefab: No AnimationPlayer found")')
 	lines.append("\t\treturn")
 	lines.append("")
 	lines.append("\tvar lib: AnimationLibrary = _anim_player.get_animation_library(&\"\")")
+	lines.append("\t_rename_and_import_anims(lib)")
+	lines.append("\t_built = true")
+	lines.append('\tprint("Prefab: Animations loaded: ", _anim_player.get_animation_list())')
+	lines.append("")
 	lines.append("")
 
+	# Rename and import animations helper
+	lines.append("func _rename_and_import_anims(lib: AnimationLibrary) -> void:")
 	# Rename base animation
 	for entry in _glb_files:
 		if entry["path"] == _base_glb:
-			lines.append('\t# Rename default animation to "%s"' % entry["anim_name"])
 			lines.append('\tif lib.has_animation(&"NlaTrack"):')
 			lines.append('\t\tvar anim := lib.get_animation(&"NlaTrack")')
 			lines.append("\t\tanim.loop_mode = Animation.LOOP_LINEAR")
 			lines.append('\t\tlib.remove_animation(&"NlaTrack")')
 			lines.append('\t\tlib.add_animation(&"%s", anim)' % entry["anim_name"])
 			break
-
-	lines.append("")
-
 	# Import other animations
 	for entry in _glb_files:
 		if entry["path"] == _base_glb:
 			continue
 		var var_name := "ANIM_%s" % entry["anim_name"].to_upper()
-		lines.append('\t# Import %s animation' % entry["anim_name"])
-		lines.append('\t_import_anim(%s, &"%s", lib)' % [var_name, entry["anim_name"]])
-
-	lines.append("")
-	lines.append("\t_built = true")
-	lines.append('\tprint("CharacterModel: Animations loaded: ", _anim_player.get_animation_list())')
+		lines.append('\tif not lib.has_animation(&"%s"):' % entry["anim_name"])
+		lines.append('\t\t_import_anim(%s, &"%s", lib)' % [var_name, entry["anim_name"]])
 	lines.append("")
 	lines.append("")
 
@@ -224,6 +268,73 @@ func _generate_character_script(script_path: String) -> void:
 	lines.append("\tinstance.queue_free()")
 	lines.append("")
 	lines.append("")
+
+	# Collision setup
+	if want_collision or want_physics:
+		lines.append("func _setup_collision() -> void:")
+		lines.append('\t_collision_shape = get_node_or_null("CollisionShape3D") as CollisionShape3D')
+		lines.append("\tif not _collision_shape:")
+		lines.append("\t\t_collision_shape = CollisionShape3D.new()")
+		lines.append('\t\t_collision_shape.name = "CollisionShape3D"')
+		lines.append("\t\t# Auto-generate collision from model AABB")
+		lines.append("\t\tvar aabb := _get_model_aabb()")
+		lines.append("\t\tvar box := BoxShape3D.new()")
+		lines.append("\t\tbox.size = aabb.size")
+		lines.append("\t\t_collision_shape.shape = box")
+		lines.append("\t\t_collision_shape.position = aabb.position + aabb.size * 0.5")
+		lines.append("\t\tadd_child(_collision_shape)")
+		lines.append("\t\tif Engine.is_editor_hint() and get_tree().edited_scene_root:")
+		lines.append("\t\t\t_collision_shape.owner = get_tree().edited_scene_root")
+		lines.append("\t_update_collision()")
+		if want_physics:
+			lines.append("\t_update_physics()")
+		lines.append("")
+		lines.append("")
+
+		lines.append("func _update_collision() -> void:")
+		lines.append("\tif _collision_shape:")
+		lines.append("\t\t_collision_shape.disabled = not collision_enabled")
+		lines.append("")
+		lines.append("")
+
+		if want_physics:
+			lines.append("func _update_physics() -> void:")
+			lines.append("\tif not Engine.is_editor_hint():")
+			lines.append("\t\tfreeze = not physics_enabled")
+			lines.append("")
+			lines.append("")
+
+		lines.append("func _get_model_aabb() -> AABB:")
+		lines.append('\tvar model := get_node_or_null("Model")')
+		lines.append("\tif not model:")
+		lines.append("\t\treturn AABB(Vector3(-0.5, 0, -0.5), Vector3(1, 2, 1))")
+		lines.append("\tvar result := AABB()")
+		lines.append("\tvar first := true")
+		lines.append("\tfor child in _get_all_children(model):")
+		lines.append("\t\tif child is MeshInstance3D:")
+		lines.append("\t\t\tvar mesh_aabb := child.get_aabb()")
+		lines.append("\t\t\tvar t := child.global_transform * Transform3D(Basis(), mesh_aabb.position)")
+		lines.append("\t\t\tvar local_pos := global_transform.affine_inverse() * t.origin")
+		lines.append("\t\t\tvar local_aabb := AABB(local_pos, mesh_aabb.size)")
+		lines.append("\t\t\tif first:")
+		lines.append("\t\t\t\tresult = local_aabb")
+		lines.append("\t\t\t\tfirst = false")
+		lines.append("\t\t\telse:")
+		lines.append("\t\t\t\tresult = result.merge(local_aabb)")
+		lines.append("\tif first:")
+		lines.append("\t\treturn AABB(Vector3(-0.5, 0, -0.5), Vector3(1, 2, 1))")
+		lines.append("\treturn result")
+		lines.append("")
+		lines.append("")
+
+		lines.append("func _get_all_children(node: Node) -> Array[Node]:")
+		lines.append("\tvar result: Array[Node] = []")
+		lines.append("\tfor child in node.get_children():")
+		lines.append("\t\tresult.append(child)")
+		lines.append("\t\tresult.append_array(_get_all_children(child))")
+		lines.append("\treturn result")
+		lines.append("")
+		lines.append("")
 
 	# Animation tree setup
 	lines.append("func _setup_animation_tree() -> void:")
@@ -304,20 +415,48 @@ func _generate_character_script(script_path: String) -> void:
 	var file := FileAccess.open(script_path, FileAccess.WRITE)
 	file.store_string("\n".join(lines))
 	file.close()
-	print("CharacterImporter: Generated script: %s" % script_path)
+	print("ModelImporter: Generated script: %s" % script_path)
 
 
-func _generate_character_scene(scene_path: String, script_path: String) -> void:
-	# Create a minimal .tscn that just has a Node3D with the generated script
+func _generate_character_scene(scene_path: String, script_path: String, want_collision: bool, want_physics: bool, model_scale: float) -> void:
+	# Determine root node type
+	var node_type := "Node3D"
+	if want_physics:
+		node_type = "RigidBody3D"
+	elif want_collision:
+		node_type = "StaticBody3D"
+
+	var node_name := scene_path.get_file().get_basename().to_pascal_case()
+	var scale_str := "Transform3D(%s, 0, 0, 0, %s, 0, 0, 0, %s, 0, 0, 0)" % [model_scale, model_scale, model_scale]
+
 	var content := '[gd_scene format=3]\n\n'
-	content += '[ext_resource type="Script" path="%s" id="1_script"]\n\n' % script_path
-	content += '[node name="%s" type="Node3D"]\n' % scene_path.get_file().get_basename().to_pascal_case()
+	content += '[ext_resource type="Script" path="%s" id="1_script"]\n' % script_path
+	content += '[ext_resource type="PackedScene" path="%s" id="2_model"]\n\n' % _base_glb
+
+	# Collision shape sub-resource (placeholder, will be auto-sized at runtime)
+	if want_collision or want_physics:
+		content += '[sub_resource type="BoxShape3D" id="BoxShape3D_1"]\n'
+		content += 'size = Vector3(1, 1, 1)\n\n'
+
+	content += '[node name="%s" type="%s"]\n' % [node_name, node_type]
+	if model_scale != 1.0:
+		content += 'transform = %s\n' % scale_str
 	content += 'script = ExtResource("1_script")\n'
+	if want_physics:
+		content += '\n'
+
+	# Collision shape node
+	if want_collision or want_physics:
+		content += '\n[node name="CollisionShape3D" type="CollisionShape3D" parent="."]\n'
+		content += 'shape = SubResource("BoxShape3D_1")\n'
+
+	# Model instance
+	content += '\n[node name="Model" type="Node3D" parent="." instance=ExtResource("2_model")]\n'
 
 	var file := FileAccess.open(scene_path, FileAccess.WRITE)
 	file.store_string(content)
 	file.close()
-	print("CharacterImporter: Generated scene: %s" % scene_path)
+	print("ModelImporter: Generated scene: %s (%s, scale=%.1f)" % [scene_path, node_type, model_scale])
 
 
 func _set_status(text: String) -> void:
