@@ -65,13 +65,16 @@ func _ready() -> void:
 		_sun.visible = true
 
 	# Create CPU particle systems (GL Compatibility compatible)
+	# Set emitting=false BEFORE adding to tree to prevent initial burst
 	_rain_particles = _create_rain_particles()
-	add_child(_rain_particles)
 	_rain_particles.emitting = false
+	_rain_particles.visible = false
+	add_child(_rain_particles)
 
 	_snow_particles = _create_snow_particles()
-	add_child(_snow_particles)
 	_snow_particles.emitting = false
+	_snow_particles.visible = false
+	add_child(_snow_particles)
 
 	print("WeatherSystem: Ready (rain=%d particles, snow=%d particles)" % [_rain_particles.amount, _snow_particles.amount])
 
@@ -94,8 +97,13 @@ func set_weather(weather: int) -> void:
 ## Apply weather locally (no network).
 func _apply_weather_local(weather: int) -> void:
 	current_weather = weather as WeatherType
+	# Stop and hide both particle systems, restart to clear any stale particles
 	_rain_particles.emitting = false
+	_rain_particles.visible = false
+	_rain_particles.restart()
 	_snow_particles.emitting = false
+	_snow_particles.visible = false
+	_snow_particles.restart()
 
 	match current_weather:
 		WeatherType.CLEAR:
@@ -124,6 +132,8 @@ func _apply_clear() -> void:
 
 
 func _apply_rain() -> void:
+	_rain_particles.visible = true
+	_rain_particles.restart()
 	_rain_particles.emitting = true
 	print("WeatherSystem: Rain particles emitting=%s, amount=%d, pos=%s" % [_rain_particles.emitting, _rain_particles.amount, _rain_particles.global_position])
 	if _env:
@@ -141,6 +151,8 @@ func _apply_rain() -> void:
 
 
 func _apply_snow() -> void:
+	_snow_particles.visible = true
+	_snow_particles.restart()
 	_snow_particles.emitting = true
 	print("WeatherSystem: Snow particles emitting=%s, amount=%d, pos=%s" % [_snow_particles.emitting, _snow_particles.amount, _snow_particles.global_position])
 	if _env:
