@@ -11,6 +11,13 @@ const IDLE_SCENE := preload("res://Assest/Walker/walker.glb")
 const WALK_SCENE := preload("res://Assest/Walker/walker_walk.glb")
 const RUN_SCENE := preload("res://Assest/Walker/walker_run.glb")
 
+## Drag this slider in the Inspector to preview animations in the editor.
+## 0.0 = idle, 0.5 = walk, 1.0 = run
+@export_range(0.0, 1.0, 0.01) var preview_blend: float = 0.0:
+	set(value):
+		preview_blend = value
+		set_movement_blend(value)
+
 var anim_tree: AnimationTree
 var _anim_player: AnimationPlayer
 var _built := false
@@ -19,44 +26,42 @@ var _built := false
 func _ready() -> void:
 	if _built:
 		return
-	# Clear any leftover children from previous editor reload
-	for child in get_children():
-		child.queue_free()
-	await get_tree().process_frame
-	_build_model()
-	_setup_animation_tree()
+	_setup()
 
 
-func _build_model() -> void:
-	# Instance the idle/base model (contains mesh + skeleton + idle animation)
-	var idle_instance: Node3D = IDLE_SCENE.instantiate()
-	idle_instance.name = "WalkerMesh"
-	add_child(idle_instance)
-	if Engine.is_editor_hint() and get_tree().edited_scene_root:
-		idle_instance.owner = get_tree().edited_scene_root
+func _setup() -> void:
+	# Use existing WalkerMesh if user placed it in the editor, otherwise instantiate
+	var mesh_node: Node = get_node_or_null("WalkerMesh")
+	if not mesh_node:
+		mesh_node = IDLE_SCENE.instantiate()
+		mesh_node.name = "WalkerMesh"
+		add_child(mesh_node)
+		if Engine.is_editor_hint() and get_tree().edited_scene_root:
+			mesh_node.owner = get_tree().edited_scene_root
 
-	# Find the AnimationPlayer
-	_anim_player = _find_typed(idle_instance, &"AnimationPlayer") as AnimationPlayer
+	# Find the AnimationPlayer inside the mesh
+	_anim_player = _find_typed(mesh_node, &"AnimationPlayer") as AnimationPlayer
 	if not _anim_player:
-		push_error("WalkerModel: No AnimationPlayer found in walker.glb")
+		push_error("WalkerModel: No AnimationPlayer found in walker model")
 		return
 
 	# Get the default animation library
 	var lib: AnimationLibrary = _anim_player.get_animation_library(&"")
 
-	# Rename "NlaTrack" → "idle"
+	# Rename "NlaTrack" → "idle" (only if not already renamed)
 	if lib.has_animation(&"NlaTrack"):
 		var idle_anim := lib.get_animation(&"NlaTrack")
 		idle_anim.loop_mode = Animation.LOOP_LINEAR
 		lib.remove_animation(&"NlaTrack")
 		lib.add_animation(&"idle", idle_anim)
 
-	# Import walk animation
-	_import_animation(WALK_SCENE, &"walk", lib)
+	# Import walk/run animations (skip if already present)
+	if not lib.has_animation(&"walk"):
+		_import_animation(WALK_SCENE, &"walk", lib)
+	if not lib.has_animation(&"run"):
+		_import_animation(RUN_SCENE, &"run", lib)
 
-	# Import run animation
-	_import_animation(RUN_SCENE, &"run", lib)
-
+	_setup_animation_tree()
 	_built = true
 	print("WalkerModel: Animations loaded: ", _anim_player.get_animation_list())
 
@@ -74,6 +79,14 @@ func _import_animation(scene: PackedScene, anim_name: StringName, target_lib: An
 
 func _setup_animation_tree() -> void:
 	if not _anim_player:
+		return
+
+	# Reuse existing AnimationTree if present (editor reload)
+	var existing := get_node_or_null("AnimationTree") as AnimationTree
+	if existing:
+		anim_tree = existing
+		anim_tree.anim_player = _anim_player.get_path()
+		anim_tree.active = true
 		return
 
 	anim_tree = AnimationTree.new()

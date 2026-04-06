@@ -7,8 +7,9 @@ var _dock: Control
 
 func _enter_tree() -> void:
 	_dock = DOCK_SCENE.instantiate()
-	_dock.editor_plugin = self
 	add_control_to_dock(EditorPlugin.DOCK_SLOT_RIGHT_UL, _dock)
+	# Defer property assignment until dock script is fully loaded
+	_dock.set_deferred(&"editor_plugin", self)
 
 
 func _exit_tree() -> void:

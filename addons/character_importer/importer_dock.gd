@@ -5,7 +5,7 @@ extends VBoxContainer
 ## and generates a ready-to-use character scene with merged AnimationPlayer
 ## and AnimationTree (BlendSpace1D: idle/walk/run).
 
-var editor_plugin: EditorPlugin
+var editor_plugin = null  # Set by plugin.gd after instantiation
 
 # Known animation name patterns (filename contains → animation name)
 const ANIM_PATTERNS := {
