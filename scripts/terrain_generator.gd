@@ -55,6 +55,7 @@ signal terrain_ready
 var _noise: FastNoiseLite
 var _detail_noise: FastNoiseLite
 var _saved_mesh: Mesh  # Holds mesh reference during editor save
+var _saved_col_shape: Shape3D  # Holds collision shape during editor save
 var _base_heights: PackedFloat32Array  # Heights from noise generation (no sculpt)
 
 
@@ -72,6 +73,13 @@ func _notification(what: int) -> void:
 		# Before editor saves: stash and clear the mesh so it won't be baked into .tscn
 		_saved_mesh = mesh
 		mesh = null
+		# Also stash collision shape so it won't be baked
+		if get_parent() is StaticBody3D:
+			for child in get_parent().get_children():
+				if child is CollisionShape3D:
+					_saved_col_shape = child.shape
+					child.shape = null
+					break
 		# If sculpt overlay is all zeros, clear it to keep scene file small
 		if sculpt_overlay.size() > 0:
 			var has_data := false
@@ -86,6 +94,12 @@ func _notification(what: int) -> void:
 		if _saved_mesh:
 			mesh = _saved_mesh
 			_saved_mesh = null
+		if _saved_col_shape and get_parent() is StaticBody3D:
+			for child in get_parent().get_children():
+				if child is CollisionShape3D:
+					child.shape = _saved_col_shape
+					break
+			_saved_col_shape = null
 
 
 func _generate_terrain() -> void:
@@ -236,8 +250,8 @@ func _generate_terrain() -> void:
 	st.index()
 	mesh = st.commit()
 
-	# Generate collision shape only at runtime (not in editor)
-	if not Engine.is_editor_hint() and get_parent() is StaticBody3D:
+	# Generate collision shape (both editor and runtime, for SGT grass painting)
+	if get_parent() is StaticBody3D:
 		var trimesh := mesh.create_trimesh_shape()
 		var col_shape: CollisionShape3D
 		for child in get_parent().get_children():
@@ -247,6 +261,8 @@ func _generate_terrain() -> void:
 		if col_shape == null:
 			col_shape = CollisionShape3D.new()
 			get_parent().add_child(col_shape)
+			if Engine.is_editor_hint():
+				col_shape.set_owner(null)  # Don't save to scene
 		col_shape.shape = trimesh
 		print("Collision shape created: faces=%d" % trimesh.get_faces().size())
 

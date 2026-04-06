@@ -1,11 +1,10 @@
 [gd_scene format=3 uid="uid://bgywun5j872wn"]
 
-[ext_resource type="Script" uid="uid://hkh1i5wdvull" path="res://scripts/terrain_generator.gd" id="1_terrain"]
-[ext_resource type="Shader" uid="uid://ble6sb2eu8jxm" path="res://shaders/grass_terrain.gdshader" id="2_shader"]
-[ext_resource type="Shader" uid="uid://vv5vylc1v5m1" path="res://shaders/water.gdshader" id="3_water_shader"]
-[ext_resource type="Script" uid="uid://cyexsbax5c8t0" path="res://scripts/water_surface.gd" id="4_water"]
 [ext_resource type="Script" uid="uid://d1m7g5qnsqxhi" path="res://scripts/game_manager.gd" id="5_gm"]
+[ext_resource type="Shader" uid="uid://bi3o8elbtqoni" path="res://addons/simplegrasstextured/shaders/grass.gdshader" id="6_chrg4"]
 [ext_resource type="Script" uid="uid://2juaclm8gc1n" path="res://addons/simplegrasstextured/grass.gd" id="6_sgt"]
+[ext_resource type="ArrayMesh" uid="uid://sptcpdx6wtm8" path="res://addons/simplegrasstextured/default_mesh.tres" id="7_78frx"]
+[ext_resource type="Texture2D" uid="uid://c4ggdp0kg5wjk" path="res://addons/simplegrasstextured/textures/grassbushcc008.png" id="7_k4blr"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.35, 0.55, 0.85, 1)
@@ -38,38 +37,38 @@ adjustment_brightness = 1.05
 adjustment_contrast = 1.05
 adjustment_saturation = 1.15
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_grass"]
-render_priority = 0
-shader = ExtResource("2_shader")
-shader_parameter/grass_color_valley = Color(0.18, 0.42, 0.12, 1)
-shader_parameter/grass_color_peak = Color(0.45, 0.65, 0.15, 1)
-shader_parameter/grass_color_dry = Color(0.55, 0.52, 0.22, 1)
-shader_parameter/height_blend_range = 20.0
-shader_parameter/height_offset = 0.0
-shader_parameter/color_noise_scale = 0.05
-shader_parameter/color_noise_strength = 0.3
-shader_parameter/texture_scale = 8.0
-shader_parameter/roughness = 0.85
-shader_parameter/specular_amount = 0.15
-shader_parameter/wind_speed = 0.8
-shader_parameter/wind_strength = 0.15
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_water"]
-render_priority = 1
-shader = ExtResource("3_water_shader")
-shader_parameter/water_color_shallow = Color(0.15, 0.45, 0.42, 1)
-shader_parameter/water_color_deep = Color(0.05, 0.15, 0.25, 1)
-shader_parameter/color_depth = 3.0
-shader_parameter/water_alpha = 0.75
-shader_parameter/wave_speed = 0.6
-shader_parameter/wave_scale = 0.15
-shader_parameter/wave_height = 0.08
-shader_parameter/flow_direction = Vector2(1, 0)
-shader_parameter/flow_speed = 0.4
-shader_parameter/ripple_scale = 12.0
-shader_parameter/foam_amount = 0.15
-shader_parameter/roughness = 0.05
-shader_parameter/metallic = 0.3
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_78frx"]
+render_priority = 0
+shader = ExtResource("6_chrg4")
+shader_parameter/albedo = Color(1, 1, 1, 1)
+shader_parameter/texture_albedo = ExtResource("7_k4blr")
+shader_parameter/texture_frames = Vector2(1, 1)
+shader_parameter/light_mode = 1
+shader_parameter/alpha_scissor_threshold = 0.5
+shader_parameter/normal_scale = 1.0
+shader_parameter/metallic = 0.0
+shader_parameter/metallic_texture_channel = Vector4(1, 0, 0, 0)
+shader_parameter/roughness = 1.0
+shader_parameter/roughness_texture_channel = Vector4(1, 0, 0, 0)
+shader_parameter/specular = 0.5
+shader_parameter/scale_h = 0.8
+shader_parameter/scale_w = 0.8
+shader_parameter/scale_var = -0.25
+shader_parameter/grass_strength = 0.4
+shader_parameter/optimization_by_distance = true
+shader_parameter/optimization_level = 7.0
+shader_parameter/optimization_dist_min = 10.0
+shader_parameter/optimization_dist_max = 60.0
+shader_parameter/grass_size_y = 1.0
+shader_parameter/interactive_mode = true
+shader_parameter/interactive_level_xz = 3.0
+shader_parameter/interactive_level_y = 0.3
+metadata/SimpleGrassTexturedMaterial = "2.1.0"
+
+[sub_resource type="MultiMesh" id="MultiMesh_ooa1f"]
+transform_format = 1
+mesh = ExtResource("7_78frx")
 
 [node name="Grassland" type="Node3D" unique_id=436767915]
 
@@ -90,37 +89,36 @@ visible = false
 light_color = Color(0.6, 0.7, 0.9, 1)
 light_energy = 0.3
 
-[node name="TerrainBody" type="StaticBody3D" parent="." unique_id=1986039480]
+[node name="Terrain3D" type="Terrain3D" parent="."]
 
-[node name="TerrainMesh" type="MeshInstance3D" parent="TerrainBody" unique_id=1143667449]
-material_override = SubResource("ShaderMaterial_grass")
-script = ExtResource("1_terrain")
-terrain_size = Vector2(250, 250)
-subdivisions = Vector2i(250, 250)
-max_height = 15.0
-noise_frequency = 0.015
-detail_frequency = 0.06
-detail_strength = 0.2
-sculpt_overlay = PackedFloat32Array()
-
-[node name="WaterSurface" type="MeshInstance3D" parent="." unique_id=2021937815]
-material_override = SubResource("ShaderMaterial_water")
-cast_shadow = 0
-script = ExtResource("4_water")
+[node name="Terrain3DObjects" type="Node3D" parent="."]
 
 [node name="GameManager" type="Node" parent="." unique_id=1474835207]
 script = ExtResource("5_gm")
 
 [node name="SpawnContainer" type="Node" parent="GameManager" unique_id=1224011083]
 
-[node name="Grass" type="MultiMeshInstance3D" parent="."]
+[node name="Grass" type="MultiMeshInstance3D" parent="." unique_id=1852298074]
+material_override = SubResource("ShaderMaterial_78frx")
+custom_aabb = AABB(2147483600, 2147483600, 2147483600, -4294967300, -4294967300, -4294967300)
+multimesh = SubResource("MultiMesh_ooa1f")
 script = ExtResource("6_sgt")
-interactive = true
 scale_h = 0.8
 scale_w = 0.8
 grass_strength = 0.4
-interactive_level_xz = 3.0
-interactive_level_y = 0.3
 optimization_by_distance = true
-optimization_dist_min = 10.0
 optimization_dist_max = 60.0
+sgt_radius = 2.0
+sgt_density = 25
+sgt_scale = 1.0
+sgt_rotation = 0.0
+sgt_rotation_rand = 1.0
+sgt_dist_min = 0.25
+sgt_follow_normal = false
+sgt_slope = Vector2(0, 45)
+sgt_tool_shape = {
+"airbrush": 1,
+"eraser": 0,
+"pencil": 1
+}
+metadata/SimpleGrassTextured = "2.0.5"

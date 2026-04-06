@@ -18,22 +18,15 @@ func _ready() -> void:
 
 
 func _wait_for_terrain_then_spawn_local() -> void:
-	# Find the terrain and wait until its collision is fully generated
-	var terrain_body := get_parent().get_node_or_null("TerrainBody")
-	var terrain_mesh: Node = null
-	if terrain_body:
-		terrain_mesh = terrain_body.get_node_or_null("TerrainMesh")
+	# Terrain3D provides built-in collision; wait a few physics frames for it to register
+	var terrain := get_parent().get_node_or_null("Terrain3D")
+	if terrain:
+		print("GameManager: Terrain3D found, waiting for collision to register...")
+	else:
+		print("GameManager: WARNING - No Terrain3D node found!")
 
-	if terrain_mesh:
-		# Always wait for the terrain_ready signal (generation is deferred)
-		if not terrain_mesh.mesh:
-			print("GameManager: Waiting for terrain_ready signal...")
-			await terrain_mesh.terrain_ready
-			print("GameManager: terrain_ready received")
-
-	# Wait for physics server to fully register the collision shape
-	# Jolt Physics needs several frames to process a large trimesh
-	for i in range(30):
+	# Wait for physics server to fully register Terrain3D collision
+	for i in range(10):
 		await get_tree().physics_frame
 
 	# Verify collision is working with a raycast
@@ -52,7 +45,7 @@ func _wait_for_terrain_then_spawn_local() -> void:
 		if result:
 			print("GameManager: Collision verified on retry! Hit at Y=%.2f" % result.position.y)
 		else:
-			print("GameManager: ERROR - Still no collision! Player will likely fall through.")
+			print("GameManager: ERROR - Still no collision! Player may fall through.")
 
 	_terrain_ready = true
 	print("GameManager: Spawning players...")

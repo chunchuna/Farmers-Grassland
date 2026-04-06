@@ -4,12 +4,10 @@
 
 ## 功能特性
 
-- **程序化地形生成** — 基于 FastNoiseLite 的大型地形（250×250），支持编辑器内地形雕刻
+- **Terrain3D 地形** — 使用 [Terrain3D](https://github.com/TokisanGames/Terrain3D) 高性能 C++ 地形插件，支持编辑器内雕刻、纹理绘制、LOD
 - **LAN 多人联机** — 基于 ENet 的局域网多人游戏，支持 Host/Join
 - **互动草地系统** — 使用 [SimpleGrassTextured](https://github.com/IcterusGames/SimpleGrassTextured) 插件，草地随风摆动，玩家走过时草会弯曲
-- **水面着色器** — 带波浪、流动、泡沫效果的实时水面
 - **第一人称控制** — WASD 移动，Shift 冲刺，Space 跳跃，鼠标控制视角
-- **地形雕刻插件** — 编辑器内实时笔刷雕刻地形高度
 
 ## 快速开始
 
@@ -48,41 +46,45 @@
 ```
 ├── addons/
 │   ├── simplegrasstextured/   # 草地插件 (第三方)
-│   └── terrain_sculpt/        # 地形雕刻编辑器插件
+│   └── terrain_3d/            # Terrain3D 地形插件 (第三方)
 ├── scenes/
 │   ├── lobby.tscn             # 联机大厅
 │   ├── grassland.tscn         # 主游戏场景
 │   └── player.tscn            # 玩家角色
-├── scripts/
-│   ├── terrain_generator.gd   # 程序化地形生成
-│   ├── water_surface.gd       # 水面生成
-│   ├── player.gd              # 第一人称控制器
-│   ├── player_sync.gd         # 多人同步
-│   ├── game_manager.gd        # 游戏管理/玩家生成
-│   └── lobby_ui.gd            # 大厅 UI 逻辑
-└── shaders/
-    ├── grass_terrain.gdshader  # 地形着色器
-    └── water.gdshader          # 水面着色器
+└── scripts/
+    ├── player.gd              # 第一人称控制器
+    ├── player_sync.gd         # 多人同步
+    ├── game_manager.gd        # 游戏管理/玩家生成
+    └── lobby_ui.gd            # 大厅 UI 逻辑
 ```
+
+## 地形编辑
+
+选中场景树中的 **Terrain3D** 节点后，编辑器上方会出现 Terrain3D 工具栏：
+
+1. **Region** — 先添加一个 Region（地形区块），这是绘制的前提
+2. **Sculpt** — 雕刻地形高度（升高/降低/平滑）
+3. **Paint** — 绘制地形纹理（需先在 Asset Dock 中添加纹理）
+4. **Foliage** — Terrain3D 自带的植被实例化系统
 
 ## 画草指南
 
-项目使用 SimpleGrassTextured 插件在编辑器中手动绘制草地：
+使用 SimpleGrassTextured 插件在 Terrain3D 地形上绘制草地：
 
 1. 打开 `grassland.tscn`
-2. 在场景树中选择 **Grass** 节点
-3. 使用 3D 视口上方出现的画笔工具在地形上涂画
-4. 调整密度、半径、缩放等参数
-5. 完成后可通过菜单 **Bake height map** 优化运行时性能
+2. 确保 Terrain3D 已有地形数据（至少一个 Region）
+3. 选择 **Grass** 节点
+4. 使用 3D 视口上方出现的画笔工具在地形上涂画
+5. 调整密度、半径、缩放等参数
 
 ## 技术栈
 
 - **引擎**: Godot 4.6 (GL Compatibility)
 - **物理**: Jolt Physics
 - **网络**: ENet Multiplayer
+- **地形**: Terrain3D (C++ GDExtension)
 - **草地**: SimpleGrassTextured 插件
-- **着色器**: GLSL (Godot Shading Language)
 
 ## 许可证
 
-本项目代码部分使用 MIT 许可证。SimpleGrassTextured 插件遵循其自身的 MIT 许可证。
+本项目代码部分使用 MIT 许可证。Terrain3D 和 SimpleGrassTextured 插件各自遵循 MIT 许可证。
