@@ -23,12 +23,14 @@ func _ready() -> void:
 	if _built:
 		return
 	_build_model()
-	_setup_animation_tree()
+	if _anim_player:
+		_setup_animation_tree()
 	_setup_collision()
 
 
 func _build_model() -> void:
-	# Find existing Model child or instantiate new one
+	# Always use the existing Model node from the .tscn scene.
+	# NEVER add_child in editor mode — that bakes nodes into the parent scene.
 	var existing := get_node_or_null("Model")
 	if existing:
 		_anim_player = _find_typed(existing, &"AnimationPlayer") as AnimationPlayer
@@ -38,11 +40,14 @@ func _build_model() -> void:
 			_built = true
 			return
 
+	# Runtime-only fallback: if Model node is missing (shouldn't happen normally)
+	if Engine.is_editor_hint():
+		push_warning("Prefab: Model node not found in scene. Open the prefab .tscn to fix.")
+		return
+
 	var base_instance := ANIM_IDLE.instantiate()
 	base_instance.name = "Model"
 	add_child(base_instance)
-	if Engine.is_editor_hint() and get_tree().edited_scene_root:
-		base_instance.owner = get_tree().edited_scene_root
 
 	_anim_player = _find_typed(base_instance, &"AnimationPlayer") as AnimationPlayer
 	if not _anim_player:
@@ -77,17 +82,16 @@ func _import_anim(scene: PackedScene, anim_name: StringName, target_lib: Animati
 func _setup_collision() -> void:
 	_collision_shape = get_node_or_null("CollisionShape3D") as CollisionShape3D
 	if not _collision_shape:
+		if Engine.is_editor_hint():
+			return  # Don't create nodes in editor — they leak into parent scene
 		_collision_shape = CollisionShape3D.new()
 		_collision_shape.name = "CollisionShape3D"
-		# Auto-generate collision from model AABB
 		var aabb := _get_model_aabb()
 		var box := BoxShape3D.new()
 		box.size = aabb.size
 		_collision_shape.shape = box
 		_collision_shape.position = aabb.position + aabb.size * 0.5
 		add_child(_collision_shape)
-		if Engine.is_editor_hint() and get_tree().edited_scene_root:
-			_collision_shape.owner = get_tree().edited_scene_root
 	_update_collision()
 
 

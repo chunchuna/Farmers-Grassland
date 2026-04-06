@@ -2,7 +2,6 @@
 
 [ext_resource type="Texture2D" uid="uid://ddprscrpsofah" path="res://demo/assets/textures/ground037_alb_ht.png" id="1_xbit7"]
 [ext_resource type="PackedScene" uid="uid://cjtjyu3y4ms0x" path="res://scenes/zhishengfeiji_prefab.tscn" id="2_78frx"]
-[ext_resource type="PackedScene" uid="uid://21tviw5pov7c" path="res://Assest/ZhiShengFeiJi/ZhiShengFeiJi.glb" id="3_k4blr"]
 [ext_resource type="Script" uid="uid://d1m7g5qnsqxhi" path="res://scripts/game_manager.gd" id="5_gm"]
 [ext_resource type="Shader" uid="uid://bi3o8elbtqoni" path="res://addons/simplegrasstextured/shaders/grass.gdshader" id="6_chrg4"]
 [ext_resource type="Script" uid="uid://2juaclm8gc1n" path="res://addons/simplegrasstextured/grass.gd" id="6_sgt"]
@@ -110,7 +109,7 @@ normal_texture = ExtResource("1_xbit7")
 mesh_list = Array[Terrain3DMeshAsset]([SubResource("Terrain3DMeshAsset_mmgue")])
 texture_list = Array[Terrain3DTextureAsset]([SubResource("Terrain3DTextureAsset_04mbe")])
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_ooa1f"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_78frx"]
 render_priority = 0
 shader = ExtResource("6_chrg4")
 shader_parameter/albedo = Color(1, 1, 1, 1)
@@ -181,7 +180,7 @@ script = ExtResource("5_gm")
 [node name="SpawnContainer" type="Node" parent="GameManager" unique_id=1224011083]
 
 [node name="Grass" type="MultiMeshInstance3D" parent="." unique_id=1852298074]
-material_override = SubResource("ShaderMaterial_ooa1f")
+material_override = SubResource("ShaderMaterial_78frx")
 custom_aabb = AABB(2147483600, 2147483600, 2147483600, -4294967300, -4294967300, -4294967300)
 multimesh = SubResource("MultiMesh_ooa1f")
 script = ExtResource("6_sgt")
@@ -214,6 +213,4 @@ snow_sun_color = Color(0.043137256, 0.015686275, 0, 1)
 script = ExtResource("9_debug")
 
 [node name="ZhishengfeijiPrefab" parent="." unique_id=426533777 instance=ExtResource("2_78frx")]
-transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, -0.15417409, 2.028329, -1.7360206)
-
-[node name="@Node3D@28528" type="Node3D" parent="ZhishengfeijiPrefab" unique_id=725656264 instance=ExtResource("3_k4blr")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 1.9954875, 0)
