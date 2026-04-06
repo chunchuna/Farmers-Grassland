@@ -144,8 +144,9 @@ mesh = ExtResource("7_78frx")
 environment = SubResource("Environment_1")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1946022508]
-transform = Transform3D(-0.5942757, 0.7791636, -0.1976902, -0.10982505, -0.3223871, -0.9405662, -0.79650533, -0.53738284, 0.27712646, 0, 30, 0)
-light_color = Color(1, 0.95, 0.85, 1)
+transform = Transform3D(-0.5943767, 0.77947974, -0.19780819, -0.093115, 0.17760977, 0.97968245, 0.7987776, 0.6007279, -0.03297293, 0, 30, 0)
+light_color = Color(0.08508118, 0.09079415, 0.3980785, 1)
+light_energy = 0.1
 light_angular_distance = 1.0
 shadow_enabled = true
 shadow_bias = 0.03

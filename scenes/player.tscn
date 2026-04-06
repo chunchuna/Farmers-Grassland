@@ -12,6 +12,8 @@ height = 1.8
 [node name="Player" type="CharacterBody3D" unique_id=706888724]
 collision_layer = 2
 script = ExtResource("1_player")
+walk_speed = 3.0
+sprint_speed = 6.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=968866624]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
@@ -26,9 +28,8 @@ far = 500.0
 [node name="PlayerModel" type="Node3D" parent="." unique_id=191585452]
 transform = Transform3D(-8.742278e-08, 0, 2, 0, 2, 0, -2, 0, -8.742278e-08, 0, 0, 0)
 script = ExtResource("3_walker")
-preview_blend = null
 
-[node name="WalkerMesh" type="Node3D" parent="PlayerModel" unique_id=85756638 instance=ExtResource("3_dqkch")]
+[node name="WalkerMesh" parent="PlayerModel" unique_id=85756638 instance=ExtResource("3_dqkch")]
 
 [node name="PlayerSync" type="Node" parent="." unique_id=1738558593]
 script = ExtResource("2_sync")
