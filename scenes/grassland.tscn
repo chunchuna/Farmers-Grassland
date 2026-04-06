@@ -148,7 +148,7 @@ environment = SubResource("Environment_1")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1946022508]
 transform = Transform3D(-0.5943767, 0.77947974, -0.19780819, -0.093115, 0.17760977, 0.97968245, 0.7987776, 0.6007279, -0.03297293, 0, 30, 0)
 light_color = Color(1, 0.95, 0.85, 1)
-light_energy = 1.0
+light_energy = 0.7
 light_angular_distance = 1.0
 shadow_enabled = true
 shadow_bias = 0.03
