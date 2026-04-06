@@ -75,12 +75,19 @@ func _spawn_player(peer_id: int) -> void:
 	player.set_multiplayer_authority(peer_id)
 	spawn_container.add_child(player, true)
 
-	# Random spawn offset based on peer_id
+	# Spawn at SpawnPoint marker position with small random offset
+	var spawn_point := get_parent().get_node_or_null("SpawnPoint")
+	var base_pos := Vector3(0, 10, 0)
+	if spawn_point:
+		base_pos = spawn_point.global_position
+		print("GameManager: SpawnPoint found at %s" % base_pos)
+	else:
+		print("GameManager: WARNING - SpawnPoint not found, using fallback")
 	var rng := RandomNumberGenerator.new()
 	rng.seed = peer_id
-	var offset_x := rng.randf_range(-5.0, 5.0)
-	var offset_z := rng.randf_range(-5.0, 5.0)
-	player.global_position = Vector3(offset_x, 50.0, offset_z)
+	var offset_x := rng.randf_range(-3.0, 3.0)
+	var offset_z := rng.randf_range(-3.0, 3.0)
+	player.global_position = base_pos + Vector3(offset_x, 2.0, offset_z)
 
 	# Name label
 	var label := player.get_node_or_null("NameLabel")

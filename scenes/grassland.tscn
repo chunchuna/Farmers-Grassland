@@ -1,5 +1,6 @@
 [gd_scene format=3 uid="uid://bgywun5j872wn"]
 
+[ext_resource type="Texture2D" uid="uid://ddprscrpsofah" path="res://demo/assets/textures/ground037_alb_ht.png" id="1_xbit7"]
 [ext_resource type="Script" uid="uid://d1m7g5qnsqxhi" path="res://scripts/game_manager.gd" id="5_gm"]
 [ext_resource type="Shader" uid="uid://bi3o8elbtqoni" path="res://addons/simplegrasstextured/shaders/grass.gdshader" id="6_chrg4"]
 [ext_resource type="Script" uid="uid://2juaclm8gc1n" path="res://addons/simplegrasstextured/grass.gd" id="6_sgt"]
@@ -37,8 +38,75 @@ adjustment_brightness = 1.05
 adjustment_contrast = 1.05
 adjustment_saturation = 1.15
 
+[sub_resource type="Gradient" id="Gradient_qhgjo"]
+offsets = PackedFloat32Array(0.2, 1)
+colors = PackedColorArray(1, 1, 1, 1, 0, 0, 0, 1)
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_78frx"]
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_chrg4"]
+noise_type = 2
+frequency = 0.03
+cellular_jitter = 3.0
+cellular_return_type = 0
+domain_warp_enabled = true
+domain_warp_type = 1
+domain_warp_amplitude = 50.0
+domain_warp_fractal_type = 2
+domain_warp_fractal_lacunarity = 1.5
+domain_warp_fractal_gain = 1.0
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_78frx"]
+noise = SubResource("FastNoiseLite_chrg4")
+color_ramp = SubResource("Gradient_qhgjo")
+seamless = true
+
+[sub_resource type="Terrain3DMaterial" id="Terrain3DMaterial_k4blr"]
+_shader_parameters = {
+&"bias_distance": 512.0,
+&"blend_sharpness": 0.5,
+&"depth_blur": 0.0,
+&"enable_macro_variation": true,
+&"enable_projection": true,
+&"flat_terrain_normals": false,
+&"macro_variation1": Color(1, 1, 1, 1),
+&"macro_variation2": Color(1, 1, 1, 1),
+&"macro_variation_slope": 0.333,
+&"mipmap_bias": 1.0,
+&"noise1_angle": 0.0,
+&"noise1_offset": Vector2(0.5, 0.5),
+&"noise1_scale": 0.04,
+&"noise2_scale": 0.076,
+&"noise_texture": SubResource("NoiseTexture2D_78frx"),
+&"projection_threshold": 0.8
+}
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ooa1f"]
+transparency = 4
+cull_mode = 2
+vertex_color_use_as_albedo = true
+backlight_enabled = true
+backlight = Color(0.5, 0.5, 0.5, 1)
+distance_fade_mode = 1
+distance_fade_min_distance = 128.0
+distance_fade_max_distance = 96.0
+
+[sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_mmgue"]
+generated_type = 1
+height_offset = 0.5
+material_override = SubResource("StandardMaterial3D_ooa1f")
+last_lod = 0
+last_shadow_lod = 0
+lod0_range = 128.0
+
+[sub_resource type="Terrain3DTextureAsset" id="Terrain3DTextureAsset_04mbe"]
+name = ""
+albedo_texture = ExtResource("1_xbit7")
+normal_texture = ExtResource("1_xbit7")
+
+[sub_resource type="Terrain3DAssets" id="Terrain3DAssets_m17t8"]
+mesh_list = Array[Terrain3DMeshAsset]([SubResource("Terrain3DMeshAsset_mmgue")])
+texture_list = Array[Terrain3DTextureAsset]([SubResource("Terrain3DTextureAsset_04mbe")])
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_xbit7"]
 render_priority = 0
 shader = ExtResource("6_chrg4")
 shader_parameter/albedo = Color(1, 1, 1, 1)
@@ -89,9 +157,18 @@ visible = false
 light_color = Color(0.6, 0.7, 0.9, 1)
 light_energy = 0.3
 
-[node name="Terrain3D" type="Terrain3D" parent="."]
+[node name="Terrain3D" type="Terrain3D" parent="." unique_id=1522956638]
+data_directory = "res://DiXingData"
+material = SubResource("Terrain3DMaterial_k4blr")
+assets = SubResource("Terrain3DAssets_m17t8")
+top_level = true
+metadata/_edit_lock_ = true
 
-[node name="Terrain3DObjects" type="Node3D" parent="."]
+[node name="Terrain3DObjects" type="Node3D" parent="." unique_id=1481792566]
+
+[node name="SpawnPoint" type="Marker3D" parent="." unique_id=1455425546]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.959356, 17.86084)
+gizmo_extents = 1.5
 
 [node name="GameManager" type="Node" parent="." unique_id=1474835207]
 script = ExtResource("5_gm")
@@ -99,7 +176,7 @@ script = ExtResource("5_gm")
 [node name="SpawnContainer" type="Node" parent="GameManager" unique_id=1224011083]
 
 [node name="Grass" type="MultiMeshInstance3D" parent="." unique_id=1852298074]
-material_override = SubResource("ShaderMaterial_78frx")
+material_override = SubResource("ShaderMaterial_xbit7")
 custom_aabb = AABB(2147483600, 2147483600, 2147483600, -4294967300, -4294967300, -4294967300)
 multimesh = SubResource("MultiMesh_ooa1f")
 script = ExtResource("6_sgt")

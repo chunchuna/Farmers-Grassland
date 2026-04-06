@@ -18,6 +18,7 @@ extends CharacterBody3D
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _spawn_settled: bool = false
 var _settle_frames: int = 0
+var _settle_time: float = 0.0
 
 
 func _ready() -> void:
@@ -110,10 +111,17 @@ func _physics_process(delta: float) -> void:
 		velocity.y -= _gravity * gravity_multiplier * delta
 		move_and_slide()
 		_settle_frames += 1
+		_settle_time += delta
 		if is_on_floor() and _settle_frames > 3:
 			_spawn_settled = true
 			velocity = Vector3.ZERO
 			print("Player: Settled on terrain at Y=%.2f" % global_position.y)
+		elif _settle_time > 5.0:
+			# Timeout: no collision found, settle at Y=0
+			_spawn_settled = true
+			global_position.y = 1.0
+			velocity = Vector3.ZERO
+			print("Player: Settle timeout, placing at Y=1.0")
 		return
 
 	# Normal gameplay
@@ -150,7 +158,25 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 
+	# Drive walker animation blend based on horizontal speed
+	_update_animation()
+
 	# Update SimpleGrassTextured player position for interactive grass
 	var sgt := get_node_or_null("/root/SimpleGrass")
 	if sgt:
 		sgt.set_player_position(global_position)
+
+
+func _update_animation() -> void:
+	if not player_model or not player_model.has_method("set_movement_blend"):
+		return
+	var horizontal_speed := Vector2(velocity.x, velocity.z).length()
+	# Map speed to blend: 0 = idle, walk_speed = 0.5, sprint_speed = 1.0
+	var blend: float
+	if horizontal_speed < 0.1:
+		blend = 0.0
+	elif horizontal_speed <= walk_speed:
+		blend = remap(horizontal_speed, 0.0, walk_speed, 0.0, 0.5)
+	else:
+		blend = remap(horizontal_speed, walk_speed, sprint_speed, 0.5, 1.0)
+	player_model.set_movement_blend(blend)
