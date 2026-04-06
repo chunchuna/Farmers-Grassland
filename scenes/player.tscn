@@ -1,0 +1,69 @@
+[gd_scene format=3 uid="uid://dnsuwxxagds55"]
+
+[ext_resource type="Script" uid="uid://b3qfycgqmqj2s" path="res://scripts/player.gd" id="1_player"]
+[ext_resource type="Script" uid="uid://bacywl8nddhep" path="res://scripts/player_sync.gd" id="2_sync"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_col"]
+radius = 0.35
+height = 1.8
+
+[sub_resource type="StandardMaterial3D" id="Mat_body"]
+albedo_color = Color(0.3, 0.5, 0.2, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_torso"]
+material = SubResource("Mat_body")
+size = Vector3(0.5, 0.6, 0.3)
+
+[sub_resource type="StandardMaterial3D" id="Mat_head"]
+albedo_color = Color(0.85, 0.7, 0.55, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_head"]
+material = SubResource("Mat_head")
+radius = 0.18
+height = 0.36
+
+[sub_resource type="StandardMaterial3D" id="Mat_legs"]
+albedo_color = Color(0.25, 0.25, 0.35, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_legs"]
+material = SubResource("Mat_legs")
+size = Vector3(0.45, 0.7, 0.28)
+
+[node name="Player" type="CharacterBody3D" unique_id=706888724]
+collision_layer = 2
+script = ExtResource("1_player")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=968866624]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_col")
+
+[node name="Head" type="Node3D" parent="." unique_id=549796111]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+
+[node name="Camera3D" type="Camera3D" parent="Head" unique_id=1906404454]
+far = 500.0
+
+[node name="PlayerModel" type="Node3D" parent="." unique_id=191585452]
+
+[node name="Torso" type="MeshInstance3D" parent="PlayerModel" unique_id=1541296841]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0)
+mesh = SubResource("BoxMesh_torso")
+
+[node name="Head" type="MeshInstance3D" parent="PlayerModel" unique_id=182793391]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.55, 0)
+mesh = SubResource("SphereMesh_head")
+
+[node name="Legs" type="MeshInstance3D" parent="PlayerModel" unique_id=160699055]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 0)
+mesh = SubResource("BoxMesh_legs")
+
+[node name="PlayerSync" type="Node" parent="." unique_id=1738558593]
+script = ExtResource("2_sync")
+
+[node name="NameLabel" type="Label3D" parent="." unique_id=1887436803]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+billboard = 1
+modulate = Color(1, 1, 1, 0.9)
+text = "Player"
+font_size = 24
+outline_size = 4
