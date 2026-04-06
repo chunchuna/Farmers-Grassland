@@ -6,6 +6,8 @@
 [ext_resource type="Script" uid="uid://2juaclm8gc1n" path="res://addons/simplegrasstextured/grass.gd" id="6_sgt"]
 [ext_resource type="ArrayMesh" uid="uid://sptcpdx6wtm8" path="res://addons/simplegrasstextured/default_mesh.tres" id="7_78frx"]
 [ext_resource type="Texture2D" uid="uid://c4ggdp0kg5wjk" path="res://addons/simplegrasstextured/textures/grassbushcc008.png" id="7_k4blr"]
+[ext_resource type="Script" path="res://scripts/weather_system.gd" id="8_weather"]
+[ext_resource type="Script" path="res://scripts/debug_panel.gd" id="9_debug"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.35, 0.55, 0.85, 1)
@@ -145,8 +147,8 @@ environment = SubResource("Environment_1")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1946022508]
 transform = Transform3D(-0.5943767, 0.77947974, -0.19780819, -0.093115, 0.17760977, 0.97968245, 0.7987776, 0.6007279, -0.03297293, 0, 30, 0)
-light_color = Color(0.08508118, 0.09079415, 0.3980785, 1)
-light_energy = 0.1
+light_color = Color(1, 0.95, 0.85, 1)
+light_energy = 1.0
 light_angular_distance = 1.0
 shadow_enabled = true
 shadow_bias = 0.03
@@ -200,3 +202,9 @@ sgt_tool_shape = {
 "pencil": 1
 }
 metadata/SimpleGrassTextured = "2.0.5"
+
+[node name="WeatherSystem" type="Node3D" parent="."]
+script = ExtResource("8_weather")
+
+[node name="DebugPanel" type="CanvasLayer" parent="."]
+script = ExtResource("9_debug")
