@@ -55,9 +55,12 @@ func _setup() -> void:
 		lib.remove_animation(&"NlaTrack")
 		lib.add_animation(&"idle", idle_anim)
 
-	# Import walk/run animations (skip if already present)
-	if not lib.has_animation(&"walk"):
-		_import_animation(WALK_SCENE, &"walk", lib)
+	# Import walk animation (always re-import to apply root position stripping)
+	if lib.has_animation(&"walk"):
+		lib.remove_animation(&"walk")
+	_import_animation(WALK_SCENE, &"walk", lib)
+
+	# Import run animation (skip if already present)
 	if not lib.has_animation(&"run"):
 		_import_animation(RUN_SCENE, &"run", lib)
 
@@ -73,8 +76,34 @@ func _import_animation(scene: PackedScene, anim_name: StringName, target_lib: An
 	if ap and ap.has_animation(&"NlaTrack"):
 		var anim: Animation = ap.get_animation(&"NlaTrack").duplicate()
 		anim.loop_mode = Animation.LOOP_LINEAR
+		_strip_root_position_tracks(anim)
 		target_lib.add_animation(anim_name, anim)
 	instance.queue_free()
+
+
+## Remove or flatten position tracks on root/hip bones so the character
+## stays in place (no root-motion drift from AI-generated animations).
+func _strip_root_position_tracks(anim: Animation) -> void:
+	var root_bone_keywords := ["Hip", "Root", "Armature"]
+	for track_idx in range(anim.get_track_count() - 1, -1, -1):
+		var path := anim.track_get_path(track_idx)
+		var path_str := str(path)
+		# Only affect position (translation) tracks
+		if anim.track_get_type(track_idx) != Animation.TYPE_POSITION_3D:
+			continue
+		# Check if this track targets a root-level bone
+		var is_root := false
+		for keyword in root_bone_keywords:
+			if path_str.contains(keyword):
+				is_root = true
+				break
+		if is_root:
+			# Flatten: set all keys to the first key's value so the bone stays put
+			if anim.track_get_key_count(track_idx) > 0:
+				var first_pos: Vector3 = anim.track_get_key_value(track_idx, 0)
+				for key_idx in range(anim.track_get_key_count(track_idx)):
+					anim.track_set_key_value(track_idx, key_idx, first_pos)
+				print("WalkerModel: Flattened root position track: %s" % path_str)
 
 
 func _setup_animation_tree() -> void:
