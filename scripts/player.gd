@@ -189,6 +189,18 @@ func _physics_process(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y -= _gravity * gravity_multiplier * delta
 
+	# Skip movement/jump input when UI has focus (chat, debug panel, etc.)
+	var ui_has_focus := Input.mouse_mode != Input.MOUSE_MODE_CAPTURED
+	if ui_has_focus:
+		# Still apply gravity and slide, but no player input
+		var h_vel := Vector2(velocity.x, velocity.z)
+		h_vel = h_vel.move_toward(Vector2.ZERO, walk_speed * delta * 10.0)
+		velocity.x = h_vel.x
+		velocity.z = h_vel.y
+		move_and_slide()
+		_update_animation()
+		return
+
 	# Jump
 	if is_on_floor() and Input.is_key_pressed(KEY_SPACE):
 		velocity.y = jump_velocity

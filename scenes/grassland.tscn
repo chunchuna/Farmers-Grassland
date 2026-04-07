@@ -19,6 +19,7 @@
 [ext_resource type="PackedScene" uid="uid://qym07cc6ya5s" path="res://Assest/HuanJing/glTF-20260407T072437Z-3-001/glTF/MapleTree_3.gltf" id="8_xsol4"]
 [ext_resource type="Script" uid="uid://dhetcbdynsu7f" path="res://scripts/debug_panel.gd" id="9_debug"]
 [ext_resource type="PackedScene" uid="uid://ctijgqjpo1ph0" path="res://Assest/HuanJing/glTF-20260407T072437Z-3-001/glTF/MapleTree_4.gltf" id="9_npkmd"]
+[ext_resource type="Script" uid="uid://c8thgl1c4sdsd" path="res://scripts/chat_system.gd" id="10_chat"]
 [ext_resource type="PackedScene" uid="uid://dmh40100pbt7l" path="res://Assest/HuanJing/glTF-20260407T072437Z-3-001/glTF/MapleTree_5.gltf" id="10_slq4y"]
 [ext_resource type="PackedScene" uid="uid://3p3oqgo4ok20" path="res://Assest/HuanJing/glTF-20260407T072437Z-3-001/glTF/Grass_Large.gltf" id="11_a4e47"]
 [ext_resource type="PackedScene" uid="uid://dt75w2mb1m17o" path="res://Assest/HuanJing/glTF-20260407T072437Z-3-001/glTF/BirchTree_3.gltf" id="12_si08b"]
@@ -249,7 +250,7 @@ normal_texture = ExtResource("1_xbit7")
 mesh_list = Array[Terrain3DMeshAsset]([SubResource("Terrain3DMeshAsset_5w5na"), SubResource("Terrain3DMeshAsset_c8thw"), SubResource("Terrain3DMeshAsset_px84v"), SubResource("Terrain3DMeshAsset_elajc"), SubResource("Terrain3DMeshAsset_hom4q"), SubResource("Terrain3DMeshAsset_qqh1g"), SubResource("Terrain3DMeshAsset_e2l1i"), SubResource("Terrain3DMeshAsset_po08g"), SubResource("Terrain3DMeshAsset_mbj5r"), SubResource("Terrain3DMeshAsset_k5poe"), SubResource("Terrain3DMeshAsset_f7mg6"), SubResource("Terrain3DMeshAsset_edfry"), SubResource("Terrain3DMeshAsset_hjymm"), SubResource("Terrain3DMeshAsset_871jc"), SubResource("Terrain3DMeshAsset_1mjga"), SubResource("Terrain3DMeshAsset_7w0tl"), SubResource("Terrain3DMeshAsset_2fn0m"), SubResource("Terrain3DMeshAsset_rbbwx")])
 texture_list = Array[Terrain3DTextureAsset]([SubResource("Terrain3DTextureAsset_04mbe")])
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_2ldox"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_c2wpk"]
 render_priority = 0
 shader = ExtResource("6_chrg4")
 shader_parameter/albedo = Color(1, 1, 1, 1)
@@ -323,7 +324,7 @@ script = ExtResource("5_gm")
 [node name="SpawnContainer" type="Node" parent="GameManager" unique_id=1224011083]
 
 [node name="Grass" type="MultiMeshInstance3D" parent="." unique_id=1852298074]
-material_override = SubResource("ShaderMaterial_2ldox")
+material_override = SubResource("ShaderMaterial_c2wpk")
 multimesh = SubResource("MultiMesh_78frx")
 script = ExtResource("6_sgt")
 grass_strength = 0.528
@@ -353,6 +354,9 @@ snow_sun_color = Color(0.043137256, 0.015686275, 0, 1)
 
 [node name="DebugPanel" type="CanvasLayer" parent="." unique_id=682373211]
 script = ExtResource("9_debug")
+
+[node name="ChatSystem" type="CanvasLayer" parent="." unique_id=1557892301]
+script = ExtResource("10_chat")
 
 [node name="ZhishengfeijiPrefab" parent="." unique_id=426533777 instance=ExtResource("2_78frx")]
 transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 1.9954875, 0)

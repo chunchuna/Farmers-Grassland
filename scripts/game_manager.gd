@@ -5,6 +5,7 @@ const PLAYER_SCENE := preload("res://scenes/player.tscn")
 @onready var spawn_container: Node = $SpawnContainer
 
 var _terrain_ready: bool = false
+var _chat_system: Node
 
 
 func _ready() -> void:
@@ -127,6 +128,11 @@ func _on_peer_connected(peer_id: int) -> void:
 			if existing_peer != peer_id:
 				_rpc_spawn_player.rpc_id(existing_peer, peer_id)
 
+		# Chat: announce player joined
+		_ensure_chat_system()
+		if _chat_system:
+			_chat_system.add_system_message("Player %d joined the game" % peer_id)
+
 		# Send full state snapshot to the new peer (delayed to let their scene settle)
 		_send_state_snapshot_to.call_deferred(peer_id)
 
@@ -136,6 +142,10 @@ func _on_peer_disconnected(peer_id: int) -> void:
 	_remove_player(peer_id)
 	if multiplayer.is_server():
 		_rpc_remove_player.rpc(peer_id)
+		# Chat: announce player left
+		_ensure_chat_system()
+		if _chat_system:
+			_chat_system.add_system_message("Player %d left the game" % peer_id)
 
 
 func _on_server_disconnected() -> void:
@@ -164,6 +174,11 @@ func _send_state_snapshot_to(peer_id: int) -> void:
 		weather_sys.send_weather_to(peer_id)
 
 	print("GameManager: Sent full state snapshot to peer %d" % peer_id)
+
+
+func _ensure_chat_system() -> void:
+	if not _chat_system:
+		_chat_system = get_parent().get_node_or_null("ChatSystem")
 
 
 # --- RPCs ---
