@@ -1,14 +1,28 @@
 [gd_scene format=3 uid="uid://bgywun5j872wn"]
 
+[ext_resource type="PackedScene" uid="uid://c02k2h30a3cpv" path="res://Assest/HuanJing/glTF-20260407T072437Z-3-001/glTF/BirchTree_1.gltf" id="1_se5jn"]
 [ext_resource type="Texture2D" uid="uid://ddprscrpsofah" path="res://demo/assets/textures/ground037_alb_ht.png" id="1_xbit7"]
+[ext_resource type="PackedScene" uid="uid://cf7edseltt0nf" path="res://Assest/HuanJing/glTF-20260407T072437Z-3-001/glTF/Bush_Flowers.gltf" id="2_2ldox"]
 [ext_resource type="PackedScene" uid="uid://cjtjyu3y4ms0x" path="res://scenes/zhishengfeiji_prefab.tscn" id="2_78frx"]
+[ext_resource type="PackedScene" uid="uid://cwngcibioc5kq" path="res://Assest/HuanJing/glTF-20260407T072437Z-3-001/glTF/Bush_Large.gltf" id="3_c2wpk"]
+[ext_resource type="PackedScene" uid="uid://dt7okttyo3xw3" path="res://Assest/HuanJing/glTF-20260407T072437Z-3-001/glTF/DeadTree_1.gltf" id="4_3hi1x"]
 [ext_resource type="Script" uid="uid://d1m7g5qnsqxhi" path="res://scripts/game_manager.gd" id="5_gm"]
+[ext_resource type="PackedScene" uid="uid://b51x8vpp1smob" path="res://Assest/HuanJing/glTF-20260407T072437Z-3-001/glTF/DeadTree_4.gltf" id="5_x3q2h"]
 [ext_resource type="Shader" uid="uid://bi3o8elbtqoni" path="res://addons/simplegrasstextured/shaders/grass.gdshader" id="6_chrg4"]
 [ext_resource type="Script" uid="uid://2juaclm8gc1n" path="res://addons/simplegrasstextured/grass.gd" id="6_sgt"]
+[ext_resource type="PackedScene" uid="uid://ccugq25yj4lv6" path="res://Assest/HuanJing/glTF-20260407T072437Z-3-001/glTF/MapleTree_1.gltf" id="6_x67q7"]
+[ext_resource type="PackedScene" uid="uid://cml3trsgdj11d" path="res://Assest/HuanJing/glTF-20260407T072437Z-3-001/glTF/MapleTree_2.gltf" id="7_38ai5"]
 [ext_resource type="ArrayMesh" uid="uid://sptcpdx6wtm8" path="res://addons/simplegrasstextured/default_mesh.tres" id="7_78frx"]
 [ext_resource type="Texture2D" uid="uid://c4ggdp0kg5wjk" path="res://addons/simplegrasstextured/textures/grassbushcc008.png" id="7_k4blr"]
 [ext_resource type="Script" uid="uid://bhw2kv3shqrch" path="res://scripts/weather_system.gd" id="8_weather"]
+[ext_resource type="PackedScene" uid="uid://qym07cc6ya5s" path="res://Assest/HuanJing/glTF-20260407T072437Z-3-001/glTF/MapleTree_3.gltf" id="8_xsol4"]
 [ext_resource type="Script" uid="uid://dhetcbdynsu7f" path="res://scripts/debug_panel.gd" id="9_debug"]
+[ext_resource type="PackedScene" uid="uid://ctijgqjpo1ph0" path="res://Assest/HuanJing/glTF-20260407T072437Z-3-001/glTF/MapleTree_4.gltf" id="9_npkmd"]
+[ext_resource type="PackedScene" uid="uid://dmh40100pbt7l" path="res://Assest/HuanJing/glTF-20260407T072437Z-3-001/glTF/MapleTree_5.gltf" id="10_slq4y"]
+[ext_resource type="PackedScene" uid="uid://3p3oqgo4ok20" path="res://Assest/HuanJing/glTF-20260407T072437Z-3-001/glTF/Grass_Large.gltf" id="11_a4e47"]
+[ext_resource type="PackedScene" uid="uid://dt75w2mb1m17o" path="res://Assest/HuanJing/glTF-20260407T072437Z-3-001/glTF/BirchTree_3.gltf" id="12_si08b"]
+[ext_resource type="PackedScene" uid="uid://dpqrtvcao1ic" path="res://Assest/HuanJing/glTF-20260407T072437Z-3-001/glTF/BirchTree_2.gltf" id="13_rln2f"]
+[ext_resource type="PackedScene" uid="uid://cjd5u6oq5bhs5" path="res://Assest/HuanJing/glTF-20260407T072437Z-3-001/glTF/BirchTree_5.gltf" id="14_j673l"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.35, 0.55, 0.85, 1)
@@ -82,7 +96,7 @@ _shader_parameters = {
 &"projection_threshold": 0.8
 }
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ooa1f"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ghxa2"]
 transparency = 4
 cull_mode = 2
 vertex_color_use_as_albedo = true
@@ -92,10 +106,162 @@ distance_fade_mode = 1
 distance_fade_min_distance = 128.0
 distance_fade_max_distance = 96.0
 
-[sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_mmgue"]
+[sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_5w5na"]
 generated_type = 1
 height_offset = 0.5
-material_override = SubResource("StandardMaterial3D_ooa1f")
+material_override = SubResource("StandardMaterial3D_ghxa2")
+last_lod = 0
+last_shadow_lod = 0
+lod0_range = 128.0
+
+[sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_c8thw"]
+name = "BirchTree_1"
+id = 1
+scene_file = ExtResource("1_se5jn")
+density = 0.34864497
+last_lod = 0
+last_shadow_lod = 0
+lod0_range = 128.0
+
+[sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_px84v"]
+name = "Bush_Flowers"
+id = 2
+scene_file = ExtResource("2_2ldox")
+density = 7.790763
+last_lod = 0
+last_shadow_lod = 0
+lod0_range = 128.0
+
+[sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_elajc"]
+name = "Bush_Large"
+id = 3
+scene_file = ExtResource("3_c2wpk")
+density = 2.5696929
+last_lod = 0
+last_shadow_lod = 0
+lod0_range = 128.0
+
+[sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_hom4q"]
+name = "DeadTree_1"
+id = 4
+scene_file = ExtResource("4_3hi1x")
+density = 0.40291896
+last_lod = 0
+last_shadow_lod = 0
+lod0_range = 128.0
+
+[sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_qqh1g"]
+name = "DeadTree_4"
+id = 5
+scene_file = ExtResource("5_x3q2h")
+density = 0.26792803
+last_lod = 0
+last_shadow_lod = 0
+lod0_range = 128.0
+
+[sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_e2l1i"]
+name = "MapleTree_1"
+id = 6
+scene_file = ExtResource("6_x67q7")
+density = 0.049272828
+last_lod = 0
+last_shadow_lod = 0
+lod0_range = 128.0
+
+[sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_po08g"]
+name = "MapleTree_2"
+id = 7
+scene_file = ExtResource("7_38ai5")
+density = 0.035599705
+last_lod = 0
+last_shadow_lod = 0
+lod0_range = 128.0
+
+[sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_mbj5r"]
+name = "MapleTree_3"
+id = 8
+scene_file = ExtResource("8_xsol4")
+density = 0.024101803
+last_lod = 0
+last_shadow_lod = 0
+lod0_range = 128.0
+
+[sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_k5poe"]
+name = "MapleTree_4"
+id = 9
+scene_file = ExtResource("9_npkmd")
+density = 0.41247386
+last_lod = 0
+last_shadow_lod = 0
+lod0_range = 128.0
+
+[sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_f7mg6"]
+name = "MapleTree_5"
+id = 10
+scene_file = ExtResource("10_slq4y")
+density = 0.038591526
+last_lod = 0
+last_shadow_lod = 0
+lod0_range = 128.0
+
+[sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_edfry"]
+name = "Grass_Large"
+id = 11
+scene_file = ExtResource("11_a4e47")
+last_lod = 0
+last_shadow_lod = 0
+lod0_range = 128.0
+
+[sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_hjymm"]
+name = "DeadTree_4"
+id = 12
+scene_file = ExtResource("5_x3q2h")
+density = 0.26792803
+last_lod = 0
+last_shadow_lod = 0
+lod0_range = 128.0
+
+[sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_871jc"]
+name = "DeadTree_1"
+id = 13
+scene_file = ExtResource("4_3hi1x")
+density = 0.40291896
+last_lod = 0
+last_shadow_lod = 0
+lod0_range = 128.0
+
+[sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_1mjga"]
+name = "BirchTree_3"
+id = 14
+scene_file = ExtResource("12_si08b")
+density = 0.22330731
+last_lod = 0
+last_shadow_lod = 0
+lod0_range = 128.0
+
+[sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_7w0tl"]
+name = "BirchTree_2"
+id = 15
+scene_file = ExtResource("13_rln2f")
+density = 0.14032397
+last_lod = 0
+last_shadow_lod = 0
+lod0_range = 128.0
+
+[sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_2fn0m"]
+name = "BirchTree_5"
+id = 16
+scene_file = ExtResource("14_j673l")
+density = 0.1438397
+last_lod = 0
+last_shadow_lod = 0
+lod0_range = 128.0
+
+[sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_rbbwx"]
+name = "BirchTree_2"
+id = 17
+scene_file = ExtResource("13_rln2f")
+density = 0.14032397
 last_lod = 0
 last_shadow_lod = 0
 lod0_range = 128.0
@@ -106,10 +272,10 @@ albedo_texture = ExtResource("1_xbit7")
 normal_texture = ExtResource("1_xbit7")
 
 [sub_resource type="Terrain3DAssets" id="Terrain3DAssets_m17t8"]
-mesh_list = Array[Terrain3DMeshAsset]([SubResource("Terrain3DMeshAsset_mmgue")])
+mesh_list = Array[Terrain3DMeshAsset]([SubResource("Terrain3DMeshAsset_5w5na"), SubResource("Terrain3DMeshAsset_c8thw"), SubResource("Terrain3DMeshAsset_px84v"), SubResource("Terrain3DMeshAsset_elajc"), SubResource("Terrain3DMeshAsset_hom4q"), SubResource("Terrain3DMeshAsset_qqh1g"), SubResource("Terrain3DMeshAsset_e2l1i"), SubResource("Terrain3DMeshAsset_po08g"), SubResource("Terrain3DMeshAsset_mbj5r"), SubResource("Terrain3DMeshAsset_k5poe"), SubResource("Terrain3DMeshAsset_f7mg6"), SubResource("Terrain3DMeshAsset_edfry"), SubResource("Terrain3DMeshAsset_hjymm"), SubResource("Terrain3DMeshAsset_871jc"), SubResource("Terrain3DMeshAsset_1mjga"), SubResource("Terrain3DMeshAsset_7w0tl"), SubResource("Terrain3DMeshAsset_2fn0m"), SubResource("Terrain3DMeshAsset_rbbwx")])
 texture_list = Array[Terrain3DTextureAsset]([SubResource("Terrain3DTextureAsset_04mbe")])
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_78frx"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_xb7tb"]
 render_priority = 0
 shader = ExtResource("6_chrg4")
 shader_parameter/albedo = Color(1, 1, 1, 1)
@@ -183,7 +349,7 @@ script = ExtResource("5_gm")
 [node name="SpawnContainer" type="Node" parent="GameManager" unique_id=1224011083]
 
 [node name="Grass" type="MultiMeshInstance3D" parent="." unique_id=1852298074]
-material_override = SubResource("ShaderMaterial_78frx")
+material_override = SubResource("ShaderMaterial_xb7tb")
 multimesh = SubResource("MultiMesh_78frx")
 script = ExtResource("6_sgt")
 grass_strength = 0.528
