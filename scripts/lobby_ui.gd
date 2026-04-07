@@ -2,6 +2,7 @@ extends Control
 
 const MAPS := [
 	{"name": "Grassland", "scene": "res://scenes/grassland.tscn"},
+	{"name": "Taco", "scene": "res://scenes/taco_map.tscn"},
 ]
 const DEFAULT_PORT := 7000
 

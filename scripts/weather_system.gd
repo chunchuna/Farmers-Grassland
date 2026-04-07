@@ -64,6 +64,10 @@ func _ready() -> void:
 		# Make sure sun is visible
 		_sun.visible = true
 
+	# Capture the scene's current environment values as CLEAR weather defaults
+	# so we don't overwrite night scenes with daytime colors
+	_snapshot_clear_defaults()
+
 	# Create CPU particle systems (GL Compatibility compatible)
 	# Set emitting=false BEFORE adding to tree to prevent initial burst
 	_rain_particles = _create_rain_particles()
@@ -78,7 +82,7 @@ func _ready() -> void:
 
 	print("WeatherSystem: Ready (rain=%d particles, snow=%d particles)" % [_rain_particles.amount, _snow_particles.amount])
 
-	# Apply initial weather
+	# Apply initial weather — CLEAR just keeps scene defaults, rain/snow will override
 	_apply_weather_local(current_weather)
 
 
@@ -114,6 +118,24 @@ func _apply_weather_local(weather: int) -> void:
 			_apply_snow()
 
 	print("WeatherSystem: Weather set to %s" % WeatherType.keys()[current_weather])
+
+
+## Capture the scene's current env/light values as CLEAR weather defaults.
+## This ensures CLEAR weather restores whatever the scene originally had,
+## whether that's a day or night environment.
+func _snapshot_clear_defaults() -> void:
+	if _env:
+		var sky_mat := _env.sky.sky_material as ProceduralSkyMaterial if _env.sky else null
+		if sky_mat:
+			clear_sky_top = sky_mat.sky_top_color
+			clear_sky_horizon = sky_mat.sky_horizon_color
+		clear_fog_color = _env.fog_light_color
+		clear_fog_density = _env.fog_density
+		clear_glow_intensity = _env.glow_intensity
+	if _sun:
+		clear_sun_color = _sun.light_color
+		clear_sun_energy = _sun.light_energy
+	print("WeatherSystem: Captured scene defaults as CLEAR weather")
 
 
 func _apply_clear() -> void:

@@ -1,0 +1,125 @@
+[gd_scene format=3 uid="uid://d3pf1twn8ywrf"]
+
+[ext_resource type="Environment" uid="uid://ctk2dpenpfpu3" path="res://resources/env_night.tres" id="1_riarh"]
+[ext_resource type="PackedScene" uid="uid://cr0l5rjk5ooyn" path="res://Assest/taco/Tacos/Models/Tacos.glb" id="asset_6"]
+[ext_resource type="Script" uid="uid://c8thgl1c4sdsd" path="res://scripts/chat_system.gd" id="cs_5"]
+[ext_resource type="Script" uid="uid://dhetcbdynsu7f" path="res://scripts/debug_panel.gd" id="dp_4"]
+[ext_resource type="Script" uid="uid://d1m7g5qnsqxhi" path="res://scripts/game_manager.gd" id="gm_2"]
+[ext_resource type="Script" uid="uid://cr7nva4gacihu" path="res://scripts/psx_effect.gd" id="psx_script"]
+[ext_resource type="Shader" uid="uid://drpqfbomo6oob" path="res://shaders/psx_pixelation.gdshader" id="psx_shader"]
+[ext_resource type="Script" uid="uid://bhw2kv3shqrch" path="res://scripts/weather_system.gd" id="ws_3"]
+
+[sub_resource type="BoxShape3D" id="floor_box"]
+size = Vector3(200, 1, 200)
+
+[sub_resource type="ShaderMaterial" id="psx_mat"]
+shader = ExtResource("psx_shader")
+shader_parameter/pixel_size = 3
+shader_parameter/color_depth = 32.0
+shader_parameter/dither_strength = 0.05
+
+[node name="TacoMap" type="Node3D" unique_id=654781066]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=233975074]
+environment = ExtResource("1_riarh")
+
+[node name="FillLight" type="DirectionalLight3D" parent="." unique_id=1216747744]
+transform = Transform3D(0.866, 0.354, -0.354, 0, 0.707, 0.707, 0.5, -0.612, 0.612, 0, 20, 0)
+light_color = Color(0.05, 0.06, 0.12, 1)
+light_energy = 0.1
+
+[node name="StreetLight1" type="OmniLight3D" parent="." unique_id=1980991144]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.703525, 5.3117166, 2.5318902)
+light_color = Color(1, 0.85, 0.55, 1)
+light_energy = 2.5
+light_indirect_energy = 0.3
+shadow_enabled = true
+omni_range = 12.0
+omni_attenuation = 1.5
+
+[node name="StreetLight4" type="OmniLight3D" parent="." unique_id=1799912778]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5440092, 2.222699, -16.89372)
+light_color = Color(1, 0.85, 0.55, 1)
+light_energy = 2.0
+light_indirect_energy = 0.3
+shadow_enabled = true
+omni_range = 10.0
+omni_attenuation = 1.5
+
+[node name="StreetLight2" type="OmniLight3D" parent="." unique_id=67608039]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.009265, 4.5, -5)
+light_color = Color(1, 0.85, 0.55, 1)
+light_energy = 2.0
+light_indirect_energy = 0.3
+shadow_enabled = true
+omni_range = 10.0
+omni_attenuation = 1.5
+
+[node name="StreetLight3" type="OmniLight3D" parent="." unique_id=733447761]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20.289534, 2.1623764, -4.8641915)
+light_color = Color(1, 0.82, 0.5, 1)
+light_energy = 1.8
+light_indirect_energy = 0.2
+shadow_enabled = true
+omni_range = 10.0
+omni_attenuation = 1.8
+
+[node name="StoreLight" type="OmniLight3D" parent="." unique_id=780907741]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+light_color = Color(1, 0.95, 0.8, 1)
+light_energy = 3.0
+light_indirect_energy = 0.5
+shadow_enabled = true
+omni_range = 8.0
+omni_attenuation = 1.2
+
+[node name="AccentLight" type="OmniLight3D" parent="." unique_id=494669584]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.175642, 3.1862147, 5.3199916)
+light_color = Color(0.8073607, 0.084703825, 0.22361913, 1)
+light_energy = 12.68
+light_indirect_energy = 2.641
+light_volumetric_fog_energy = 0.0
+light_size = 0.205
+omni_range = 6.0
+omni_attenuation = 2.0
+
+[node name="Tacos" parent="." unique_id=1788005954 instance=ExtResource("asset_6")]
+transform = Transform3D(1.01, 0, 0, 0, 1.01, 0, 0, 0, 1.01, 0, 0, 0)
+
+[node name="FloorCollision" type="StaticBody3D" parent="." unique_id=1025458298]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="FloorCollision" unique_id=926764036]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("floor_box")
+
+[node name="SpawnPoint" type="Marker3D" parent="." unique_id=2023437101]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+gizmo_extents = 1.5
+
+[node name="GameManager" type="Node" parent="." unique_id=1527404310]
+script = ExtResource("gm_2")
+
+[node name="SpawnContainer" type="Node" parent="GameManager" unique_id=1422770282]
+
+[node name="WeatherSystem" type="Node3D" parent="." unique_id=621468780]
+script = ExtResource("ws_3")
+
+[node name="DebugPanel" type="CanvasLayer" parent="." unique_id=1841986886]
+script = ExtResource("dp_4")
+
+[node name="ChatSystem" type="CanvasLayer" parent="." unique_id=2034728350]
+script = ExtResource("cs_5")
+
+[node name="PSXEffect" type="CanvasLayer" parent="." unique_id=89412745]
+layer = 10
+
+[node name="PSXColorRect" type="ColorRect" parent="PSXEffect" unique_id=1976816890]
+material = SubResource("psx_mat")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("psx_script")
+
+[editable path="Tacos"]
