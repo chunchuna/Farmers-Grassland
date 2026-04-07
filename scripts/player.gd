@@ -76,7 +76,8 @@ func _ready() -> void:
 	else:
 		# Remote player — disable input/camera, show model
 		camera.current = false
-		set_physics_process(false)
+		# NOTE: Do NOT disable _physics_process — PlayerSync needs its own _physics_process to run.
+		# Instead, player.gd's _physics_process checks _is_local_player() and skips local logic.
 		set_process_unhandled_input(false)
 		player_model.visible = true
 		# Set visual layer 17 so grass reacts to remote players
@@ -143,6 +144,10 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	# Remote players are driven by PlayerSync — skip all local logic
+	if not _is_local_player():
+		return
+
 	# Safety net: if we fell way below the terrain, teleport back up
 	if global_position.y < -50.0:
 		print("Player: Fell below terrain, resetting position")

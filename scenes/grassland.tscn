@@ -109,10 +109,11 @@ distance_fade_max_distance = 96.0
 [sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_5w5na"]
 generated_type = 1
 height_offset = 0.5
+cast_shadows = 0
 material_override = SubResource("StandardMaterial3D_ghxa2")
 last_lod = 0
 last_shadow_lod = 0
-lod0_range = 128.0
+lod0_range = 50.0
 
 [sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_c8thw"]
 name = "BirchTree_1"
@@ -121,25 +122,27 @@ scene_file = ExtResource("1_se5jn")
 density = 0.34864497
 last_lod = 0
 last_shadow_lod = 0
-lod0_range = 128.0
+lod0_range = 80.0
 
 [sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_px84v"]
 name = "Bush_Flowers"
 id = 2
 scene_file = ExtResource("2_2ldox")
 density = 7.790763
+cast_shadows = 0
 last_lod = 0
 last_shadow_lod = 0
-lod0_range = 128.0
+lod0_range = 50.0
 
 [sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_elajc"]
 name = "Bush_Large"
 id = 3
 scene_file = ExtResource("3_c2wpk")
 density = 2.5696929
+cast_shadows = 0
 last_lod = 0
 last_shadow_lod = 0
-lod0_range = 128.0
+lod0_range = 50.0
 
 [sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_hom4q"]
 name = "DeadTree_1"
@@ -148,7 +151,7 @@ scene_file = ExtResource("4_3hi1x")
 density = 0.40291896
 last_lod = 0
 last_shadow_lod = 0
-lod0_range = 128.0
+lod0_range = 60.0
 
 [sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_qqh1g"]
 name = "DeadTree_4"
@@ -157,7 +160,7 @@ scene_file = ExtResource("5_x3q2h")
 density = 0.26792803
 last_lod = 0
 last_shadow_lod = 0
-lod0_range = 128.0
+lod0_range = 60.0
 
 [sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_e2l1i"]
 name = "MapleTree_1"
@@ -166,7 +169,7 @@ scene_file = ExtResource("6_x67q7")
 density = 0.049272828
 last_lod = 0
 last_shadow_lod = 0
-lod0_range = 128.0
+lod0_range = 80.0
 
 [sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_po08g"]
 name = "MapleTree_2"
@@ -175,7 +178,7 @@ scene_file = ExtResource("7_38ai5")
 density = 0.035599705
 last_lod = 0
 last_shadow_lod = 0
-lod0_range = 128.0
+lod0_range = 80.0
 
 [sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_mbj5r"]
 name = "MapleTree_3"
@@ -184,7 +187,7 @@ scene_file = ExtResource("8_xsol4")
 density = 0.024101803
 last_lod = 0
 last_shadow_lod = 0
-lod0_range = 128.0
+lod0_range = 80.0
 
 [sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_k5poe"]
 name = "MapleTree_4"
@@ -193,7 +196,7 @@ scene_file = ExtResource("9_npkmd")
 density = 0.41247386
 last_lod = 0
 last_shadow_lod = 0
-lod0_range = 128.0
+lod0_range = 80.0
 
 [sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_f7mg6"]
 name = "MapleTree_5"
@@ -202,15 +205,16 @@ scene_file = ExtResource("10_slq4y")
 density = 0.038591526
 last_lod = 0
 last_shadow_lod = 0
-lod0_range = 128.0
+lod0_range = 80.0
 
 [sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_edfry"]
 name = "Grass_Large"
 id = 11
 scene_file = ExtResource("11_a4e47")
+cast_shadows = 0
 last_lod = 0
 last_shadow_lod = 0
-lod0_range = 128.0
+lod0_range = 40.0
 
 [sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_hjymm"]
 name = "DeadTree_4"
@@ -219,7 +223,7 @@ scene_file = ExtResource("5_x3q2h")
 density = 0.26792803
 last_lod = 0
 last_shadow_lod = 0
-lod0_range = 128.0
+lod0_range = 60.0
 
 [sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_871jc"]
 name = "DeadTree_1"
@@ -228,7 +232,7 @@ scene_file = ExtResource("4_3hi1x")
 density = 0.40291896
 last_lod = 0
 last_shadow_lod = 0
-lod0_range = 128.0
+lod0_range = 60.0
 
 [sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_1mjga"]
 name = "BirchTree_3"
@@ -237,7 +241,7 @@ scene_file = ExtResource("12_si08b")
 density = 0.22330731
 last_lod = 0
 last_shadow_lod = 0
-lod0_range = 128.0
+lod0_range = 80.0
 
 [sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_7w0tl"]
 name = "BirchTree_2"
@@ -246,7 +250,7 @@ scene_file = ExtResource("13_rln2f")
 density = 0.14032397
 last_lod = 0
 last_shadow_lod = 0
-lod0_range = 128.0
+lod0_range = 80.0
 
 [sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_2fn0m"]
 name = "BirchTree_5"
@@ -255,7 +259,7 @@ scene_file = ExtResource("14_j673l")
 density = 0.1438397
 last_lod = 0
 last_shadow_lod = 0
-lod0_range = 128.0
+lod0_range = 80.0
 
 [sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_rbbwx"]
 name = "BirchTree_2"
@@ -264,7 +268,7 @@ scene_file = ExtResource("13_rln2f")
 density = 0.14032397
 last_lod = 0
 last_shadow_lod = 0
-lod0_range = 128.0
+lod0_range = 80.0
 
 [sub_resource type="Terrain3DTextureAsset" id="Terrain3DTextureAsset_04mbe"]
 name = ""
@@ -275,7 +279,7 @@ normal_texture = ExtResource("1_xbit7")
 mesh_list = Array[Terrain3DMeshAsset]([SubResource("Terrain3DMeshAsset_5w5na"), SubResource("Terrain3DMeshAsset_c8thw"), SubResource("Terrain3DMeshAsset_px84v"), SubResource("Terrain3DMeshAsset_elajc"), SubResource("Terrain3DMeshAsset_hom4q"), SubResource("Terrain3DMeshAsset_qqh1g"), SubResource("Terrain3DMeshAsset_e2l1i"), SubResource("Terrain3DMeshAsset_po08g"), SubResource("Terrain3DMeshAsset_mbj5r"), SubResource("Terrain3DMeshAsset_k5poe"), SubResource("Terrain3DMeshAsset_f7mg6"), SubResource("Terrain3DMeshAsset_edfry"), SubResource("Terrain3DMeshAsset_hjymm"), SubResource("Terrain3DMeshAsset_871jc"), SubResource("Terrain3DMeshAsset_1mjga"), SubResource("Terrain3DMeshAsset_7w0tl"), SubResource("Terrain3DMeshAsset_2fn0m"), SubResource("Terrain3DMeshAsset_rbbwx")])
 texture_list = Array[Terrain3DTextureAsset]([SubResource("Terrain3DTextureAsset_04mbe")])
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_xb7tb"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_se5jn"]
 render_priority = 0
 shader = ExtResource("6_chrg4")
 shader_parameter/albedo = Color(1, 1, 1, 1)
@@ -321,7 +325,6 @@ light_energy = 0.7
 light_angular_distance = 1.0
 shadow_enabled = true
 shadow_bias = 0.03
-directional_shadow_max_distance = 200.0
 
 [node name="FillLight" type="DirectionalLight3D" parent="." unique_id=2084375113]
 transform = Transform3D(0.866, 0.354, -0.354, 0, 0.707, 0.707, 0.5, -0.612, 0.612, 0, 20, 0)
@@ -349,7 +352,7 @@ script = ExtResource("5_gm")
 [node name="SpawnContainer" type="Node" parent="GameManager" unique_id=1224011083]
 
 [node name="Grass" type="MultiMeshInstance3D" parent="." unique_id=1852298074]
-material_override = SubResource("ShaderMaterial_xb7tb")
+material_override = SubResource("ShaderMaterial_se5jn")
 multimesh = SubResource("MultiMesh_78frx")
 script = ExtResource("6_sgt")
 grass_strength = 0.528
