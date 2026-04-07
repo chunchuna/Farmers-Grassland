@@ -280,6 +280,12 @@ func _rpc_sync_weather(weather: int) -> void:
 	_apply_weather_local(weather)
 
 
+## Called by game_manager when a new peer joins — send current weather to that peer only.
+func send_weather_to(peer_id: int) -> void:
+	if multiplayer.is_server():
+		_rpc_sync_weather.rpc_id(peer_id, current_weather as int)
+
+
 # ─── Utility ───
 
 func _find_typed_in_tree(root: Node, type_name: StringName) -> Node:

@@ -127,6 +127,9 @@ func _on_peer_connected(peer_id: int) -> void:
 			if existing_peer != peer_id:
 				_rpc_spawn_player.rpc_id(existing_peer, peer_id)
 
+		# Send full state snapshot to the new peer (delayed to let their scene settle)
+		_send_state_snapshot_to.call_deferred(peer_id)
+
 
 func _on_peer_disconnected(peer_id: int) -> void:
 	print("Peer disconnected: %d" % peer_id)
@@ -141,6 +144,26 @@ func _on_server_disconnected() -> void:
 		child.queue_free()
 	multiplayer.multiplayer_peer = null
 	get_tree().change_scene_to_file("res://scenes/lobby.tscn")
+
+
+## Send full state snapshot of all existing players + weather to a late-joining peer.
+func _send_state_snapshot_to(peer_id: int) -> void:
+	# Wait a few frames so the new peer's scene is fully set up
+	for i in range(5):
+		await get_tree().physics_frame
+
+	# Each existing player sends its state to the new peer
+	for child in spawn_container.get_children():
+		var sync_node := child.get_node_or_null("PlayerSync")
+		if sync_node and sync_node.has_method("send_full_state_to"):
+			sync_node.send_full_state_to(peer_id)
+
+	# Sync weather
+	var weather_sys := get_parent().get_node_or_null("WeatherSystem")
+	if weather_sys and weather_sys.has_method("send_weather_to"):
+		weather_sys.send_weather_to(peer_id)
+
+	print("GameManager: Sent full state snapshot to peer %d" % peer_id)
 
 
 # --- RPCs ---

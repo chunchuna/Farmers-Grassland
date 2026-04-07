@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bgywun5j872wn"]
 
-[ext_resource type="Environment" uid="uid://ctk2dpenpfpu3" path="res://resources/env_night.tres" id="1_2ldox"]
+[ext_resource type="Environment" uid="uid://cfg6vrqq7ksno" path="res://resources/env_day.tres" id="1_2ldox"]
 [ext_resource type="PackedScene" uid="uid://c02k2h30a3cpv" path="res://Assest/HuanJing/glTF-20260407T072437Z-3-001/glTF/BirchTree_1.gltf" id="1_se5jn"]
 [ext_resource type="Texture2D" uid="uid://ddprscrpsofah" path="res://demo/assets/textures/ground037_alb_ht.png" id="1_xbit7"]
 [ext_resource type="PackedScene" uid="uid://cf7edseltt0nf" path="res://Assest/HuanJing/glTF-20260407T072437Z-3-001/glTF/Bush_Flowers.gltf" id="2_2ldox"]

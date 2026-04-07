@@ -136,3 +136,51 @@ func _rpc_sync_flashlight(enabled: bool) -> void:
 	_remote_flashlight = enabled
 	if player.has_method("set_flashlight"):
 		player.set_flashlight(enabled)
+
+
+# ─── Full state snapshot for late-joining players ───
+
+## Called by game_manager when a new peer joins.
+## The local player sends its full state to the specified peer.
+func send_full_state_to(peer_id: int) -> void:
+	var is_local := player.get_multiplayer_authority() == multiplayer.get_unique_id()
+	if not is_local:
+		return
+
+	var flashlight_on := false
+	var fl := player.get_node_or_null("Head/Flashlight")
+	if fl:
+		flashlight_on = fl.visible
+
+	var head_rot_x := head.rotation.x if head else 0.0
+	var h_speed := Vector2(player.velocity.x, player.velocity.z).length()
+
+	_rpc_full_state_snapshot.rpc_id(peer_id,
+		player.global_position,
+		player.rotation.y,
+		head_rot_x,
+		h_speed,
+		player.velocity.y,
+		player.is_on_floor(),
+		flashlight_on
+	)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _rpc_full_state_snapshot(pos: Vector3, rot_y: float, head_rot_x: float, h_speed: float, vel_y: float, on_floor: bool, flashlight_on: bool) -> void:
+	var sender_id := multiplayer.get_remote_sender_id()
+	if sender_id != player.get_multiplayer_authority():
+		return
+
+	_prev_position = pos
+	_target_position = pos
+	_target_rotation_y = rot_y
+	_target_head_rotation_x = head_rot_x
+	_remote_h_speed = h_speed
+	_remote_vel_y = vel_y
+	_remote_on_floor = on_floor
+
+	# Apply flashlight state
+	_remote_flashlight = flashlight_on
+	if player.has_method("set_flashlight"):
+		player.set_flashlight(flashlight_on)

@@ -84,6 +84,10 @@ func _ready() -> void:
 		player_model.visible = true
 		# Set visual layer 17 so grass reacts to remote players
 		_set_visual_layer_17(player_model)
+		# Hide motion blur overlay for remote players
+		var mblur_layer := get_node_or_null("MotionBlurLayer")
+		if mblur_layer:
+			mblur_layer.visible = false
 		return
 
 	# Start settling: freeze movement until we land on terrain
