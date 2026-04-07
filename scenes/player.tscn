@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://b4ncq1rv6vscr" path="res://scripts/walker_model.gd" id="3_walker"]
 [ext_resource type="Shader" path="res://shaders/motion_blur.gdshader" id="4_mblur_shader"]
 [ext_resource type="Script" path="res://scripts/motion_blur.gd" id="5_mblur_script"]
+[ext_resource type="Script" path="res://scripts/camera_sway.gd" id="6_sway"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_mblur"]
 shader = ExtResource("4_mblur_shader")
@@ -32,6 +33,7 @@ shape = SubResource("CapsuleShape3D_col")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
 
 [node name="Camera3D" type="Camera3D" parent="Head" unique_id=1906404454]
+script = ExtResource("6_sway")
 far = 500.0
 attributes/dof_blur_far_enabled = true
 attributes/dof_blur_far_distance = 80.0
