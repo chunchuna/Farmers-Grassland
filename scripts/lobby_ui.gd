@@ -1,10 +1,13 @@
 extends Control
 
-const GAME_SCENE := "res://scenes/grassland.tscn"
+const MAPS := [
+	{"name": "Grassland", "scene": "res://scenes/grassland.tscn"},
+]
 const DEFAULT_PORT := 7000
 
 @onready var ip_input: LineEdit = $Panel/VBoxContainer/IPInput
 @onready var port_input: LineEdit = $Panel/VBoxContainer/PortInput
+@onready var map_select: OptionButton = $Panel/VBoxContainer/MapSelect
 @onready var host_button: Button = $Panel/VBoxContainer/HostButton
 @onready var join_button: Button = $Panel/VBoxContainer/JoinButton
 @onready var status_label: Label = $Panel/VBoxContainer/StatusLabel
@@ -16,6 +19,17 @@ func _ready() -> void:
 	ip_input.text = "127.0.0.1"
 	port_input.text = str(DEFAULT_PORT)
 	status_label.text = ""
+	# Populate map selector
+	for m in MAPS:
+		map_select.add_item(m["name"])
+	map_select.selected = 0
+
+
+func _get_selected_scene() -> String:
+	var idx := map_select.selected
+	if idx >= 0 and idx < MAPS.size():
+		return MAPS[idx]["scene"]
+	return MAPS[0]["scene"]
 
 
 func _on_host_pressed() -> void:
@@ -26,11 +40,13 @@ func _on_host_pressed() -> void:
 		status_label.text = "Failed to host: %s" % error_string(err)
 		return
 	multiplayer.multiplayer_peer = peer
+	var scene_path := _get_selected_scene()
+	get_node("/root/MapSync").current_map_path = scene_path
 	status_label.text = "Hosting on port %d... Loading game..." % port
 	print("Server created on port %d" % port)
 	# Small delay so user can see the message
 	await get_tree().create_timer(0.3).timeout
-	get_tree().change_scene_to_file(GAME_SCENE)
+	get_tree().change_scene_to_file(scene_path)
 
 
 func _on_join_pressed() -> void:
@@ -55,7 +71,8 @@ func _on_join_pressed() -> void:
 
 func _on_connected() -> void:
 	print("Connected! My ID: %d" % multiplayer.get_unique_id())
-	get_tree().change_scene_to_file(GAME_SCENE)
+	# MapSync autoload will receive RPC from server with the correct map
+	status_label.text = "Connected! Waiting for map info..."
 
 
 func _on_failed() -> void:

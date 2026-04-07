@@ -1,0 +1,120 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://addons/map_generator/map_generator_dock.gd" id="1"]
+
+[node name="MapGeneratorDock" type="VBoxContainer"]
+script = ExtResource("1")
+custom_minimum_size = Vector2(260, 0)
+
+[node name="Title" type="Label" parent="."]
+text = "Map Generator"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 16
+
+[node name="Sep1" type="HSeparator" parent="."]
+
+[node name="NameLabel" type="Label" parent="."]
+text = "Map Name:"
+
+[node name="MapName" type="LineEdit" parent="."]
+placeholder_text = "e.g. house, forest, city"
+
+[node name="Sep2" type="HSeparator" parent="."]
+
+[node name="AssetLabel" type="Label" parent="."]
+text = "3D Asset (FBX/GLTF/GLB):"
+
+[node name="AssetRow" type="HBoxContainer" parent="."]
+
+[node name="AssetPath" type="LineEdit" parent="AssetRow"]
+size_flags_horizontal = 3
+placeholder_text = "res://Assest/..."
+
+[node name="BrowseBtn" type="Button" parent="AssetRow"]
+text = "..."
+custom_minimum_size = Vector2(30, 0)
+
+[node name="Sep2b" type="HSeparator" parent="."]
+
+[node name="ColliderLabel" type="Label" parent="."]
+text = "Collider Asset (optional):"
+
+[node name="ColliderRow" type="HBoxContainer" parent="."]
+
+[node name="ColliderPath" type="LineEdit" parent="ColliderRow"]
+size_flags_horizontal = 3
+placeholder_text = "res://Assest/..._Colliders.fbx"
+
+[node name="ColliderBrowseBtn" type="Button" parent="ColliderRow"]
+text = "..."
+custom_minimum_size = Vector2(30, 0)
+
+[node name="Sep3" type="HSeparator" parent="."]
+
+[node name="OptionsLabel" type="Label" parent="."]
+text = "Options:"
+
+[node name="FloorCheck" type="CheckBox" parent="."]
+text = "Add Floor Collision (200x200)"
+button_pressed = true
+
+[node name="ScaleRow" type="HBoxContainer" parent="."]
+
+[node name="ScaleLabel" type="Label" parent="ScaleRow"]
+text = "Asset Scale:"
+
+[node name="ScaleSpinBox" type="SpinBox" parent="ScaleRow"]
+size_flags_horizontal = 3
+min_value = 0.01
+max_value = 1000.0
+step = 0.1
+value = 1.0
+
+[node name="SpawnRow" type="HBoxContainer" parent="."]
+
+[node name="SpawnLabel" type="Label" parent="SpawnRow"]
+text = "Spawn Y:"
+
+[node name="SpawnY" type="SpinBox" parent="SpawnRow"]
+size_flags_horizontal = 3
+min_value = -100.0
+max_value = 500.0
+step = 0.5
+value = 2.0
+
+[node name="Sep3b" type="HSeparator" parent="."]
+
+[node name="EnvLabel" type="Label" parent="."]
+text = "Environment:"
+
+[node name="EnvSelect" type="OptionButton" parent="."]
+
+[node name="RegisterCheck" type="CheckBox" parent="."]
+text = "Auto-register in Lobby"
+button_pressed = true
+
+[node name="Sep4" type="HSeparator" parent="."]
+
+[node name="GenerateBtn" type="Button" parent="."]
+text = "Generate Map Scene"
+custom_minimum_size = Vector2(0, 38)
+
+[node name="Sep5" type="HSeparator" parent="."]
+
+[node name="ManageLabel" type="Label" parent="."]
+text = "Registered Maps:"
+
+[node name="MapList" type="ItemList" parent="."]
+custom_minimum_size = Vector2(0, 100)
+
+[node name="RemoveBtn" type="Button" parent="."]
+text = "Remove Selected Map"
+custom_minimum_size = Vector2(0, 30)
+
+[node name="Sep6" type="HSeparator" parent="."]
+
+[node name="StatusLabel" type="RichTextLabel" parent="."]
+custom_minimum_size = Vector2(0, 100)
+bbcode_enabled = true
+text = "Enter a map name and select assets to begin."
+fit_content = true

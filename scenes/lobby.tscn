@@ -26,9 +26,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -200.0
-offset_top = -180.0
+offset_top = -220.0
 offset_right = 200.0
-offset_bottom = 180.0
+offset_bottom = 220.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -38,7 +38,7 @@ theme_override_constants/separation = 12
 
 [node name="TitleLabel" type="Label" parent="Panel/VBoxContainer"]
 layout_mode = 2
-text = "Grassland Multiplayer"
+text = "Multiplayer Lobby"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 24
 
@@ -62,6 +62,13 @@ text = "Port:"
 layout_mode = 2
 placeholder_text = "7000"
 alignment = 1
+
+[node name="MapLabel" type="Label" parent="Panel/VBoxContainer"]
+layout_mode = 2
+text = "Map:"
+
+[node name="MapSelect" type="OptionButton" parent="Panel/VBoxContainer"]
+layout_mode = 2
 
 [node name="Separator2" type="HSeparator" parent="Panel/VBoxContainer"]
 layout_mode = 2

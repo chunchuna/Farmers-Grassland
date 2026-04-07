@@ -44,10 +44,11 @@ config/icon="res://icon.svg"
 SimpleGrass="*res://addons/simplegrasstextured/singleton.tscn"
 SoundManager="*uid://bvqnt5k7rvas0"
 PhantomCameraManager="*uid://duq6jhf6unyis"
+MapSync="*res://scripts/map_sync.gd"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/character_importer/plugin.cfg", "res://addons/phantom_camera/plugin.cfg", "res://addons/simplegrasstextured/plugin.cfg", "res://addons/sound_manager/plugin.cfg", "res://addons/terrain_3d/plugin.cfg")
+enabled=PackedStringArray("res://addons/character_importer/plugin.cfg", "res://addons/map_generator/plugin.cfg", "res://addons/phantom_camera/plugin.cfg", "res://addons/simplegrasstextured/plugin.cfg", "res://addons/sound_manager/plugin.cfg", "res://addons/terrain_3d/plugin.cfg")
 
 [layer_names]
 
