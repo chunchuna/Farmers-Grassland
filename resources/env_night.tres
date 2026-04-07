@@ -1,8 +1,8 @@
 [gd_resource type="Environment" format=3 uid="uid://ctk2dpenpfpu3"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_night"]
-sky_top_color = Color(0.02, 0.02, 0.06, 1)
-sky_horizon_color = Color(0.05, 0.06, 0.12, 1)
+sky_top_color = Color(0, 0, 0, 1)
+sky_horizon_color = Color(0, 0, 0, 1)
 ground_bottom_color = Color(0.01, 0.01, 0.02, 1)
 ground_horizon_color = Color(0.04, 0.05, 0.08, 1)
 sun_curve = 0.01
@@ -15,8 +15,8 @@ radiance_size = 2
 background_mode = 2
 sky = SubResource("Sky_night")
 ambient_light_source = 2
-ambient_light_color = Color(0.12, 0.14, 0.22, 1)
-ambient_light_energy = 0.15
+ambient_light_color = Color(0.037684463, 0.050061814, 0.0904732, 1)
+ambient_light_energy = 11.94
 reflected_light_source = 1
 tonemap_mode = 2
 tonemap_white = 6.0
