@@ -42,6 +42,7 @@ extends CharacterBody3D
 @onready var _spring_arm: SpringArm3D = $ThirdPersonPivot/SpringArm3D
 @onready var _tp_camera: Camera3D = $ThirdPersonPivot/SpringArm3D/TPCamera
 @onready var _flashlight: SpotLight3D = $Head/Flashlight
+@onready var _flashlight_bounce: OmniLight3D = $FlashlightBounce
 
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _spawn_settled: bool = false
@@ -310,3 +311,5 @@ func toggle_flashlight() -> void:
 func set_flashlight(enabled: bool) -> void:
 	if _flashlight:
 		_flashlight.visible = enabled
+	if _flashlight_bounce:
+		_flashlight_bounce.visible = enabled
