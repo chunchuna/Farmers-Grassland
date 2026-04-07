@@ -1,5 +1,6 @@
 [gd_scene format=3 uid="uid://bgywun5j872wn"]
 
+[ext_resource type="Environment" uid="uid://ctk2dpenpfpu3" path="res://resources/env_night.tres" id="1_2ldox"]
 [ext_resource type="PackedScene" uid="uid://c02k2h30a3cpv" path="res://Assest/HuanJing/glTF-20260407T072437Z-3-001/glTF/BirchTree_1.gltf" id="1_se5jn"]
 [ext_resource type="Texture2D" uid="uid://ddprscrpsofah" path="res://demo/assets/textures/ground037_alb_ht.png" id="1_xbit7"]
 [ext_resource type="PackedScene" uid="uid://cf7edseltt0nf" path="res://Assest/HuanJing/glTF-20260407T072437Z-3-001/glTF/Bush_Flowers.gltf" id="2_2ldox"]
@@ -23,37 +24,6 @@
 [ext_resource type="PackedScene" uid="uid://dt75w2mb1m17o" path="res://Assest/HuanJing/glTF-20260407T072437Z-3-001/glTF/BirchTree_3.gltf" id="12_si08b"]
 [ext_resource type="PackedScene" uid="uid://dpqrtvcao1ic" path="res://Assest/HuanJing/glTF-20260407T072437Z-3-001/glTF/BirchTree_2.gltf" id="13_rln2f"]
 [ext_resource type="PackedScene" uid="uid://cjd5u6oq5bhs5" path="res://Assest/HuanJing/glTF-20260407T072437Z-3-001/glTF/BirchTree_5.gltf" id="14_j673l"]
-
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
-sky_top_color = Color(0.35, 0.55, 0.85, 1)
-sky_horizon_color = Color(0.7, 0.8, 0.9, 1)
-ground_bottom_color = Color(0.2, 0.17, 0.13, 1)
-ground_horizon_color = Color(0.6, 0.65, 0.55, 1)
-sun_curve = 0.1
-
-[sub_resource type="Sky" id="Sky_1"]
-sky_material = SubResource("ProceduralSkyMaterial_1")
-radiance_size = 2
-
-[sub_resource type="Environment" id="Environment_1"]
-background_mode = 2
-sky = SubResource("Sky_1")
-tonemap_mode = 2
-tonemap_white = 6.0
-ssao_enabled = true
-ssao_radius = 3.0
-glow_enabled = true
-glow_intensity = 0.4
-glow_strength = 0.8
-glow_bloom = 0.1
-fog_enabled = true
-fog_light_color = Color(0.75, 0.82, 0.7, 1)
-fog_density = 0.001
-fog_aerial_perspective = 0.5
-adjustment_enabled = true
-adjustment_brightness = 1.05
-adjustment_contrast = 1.05
-adjustment_saturation = 1.15
 
 [sub_resource type="Gradient" id="Gradient_qhgjo"]
 offsets = PackedFloat32Array(0.2, 1)
@@ -279,7 +249,7 @@ normal_texture = ExtResource("1_xbit7")
 mesh_list = Array[Terrain3DMeshAsset]([SubResource("Terrain3DMeshAsset_5w5na"), SubResource("Terrain3DMeshAsset_c8thw"), SubResource("Terrain3DMeshAsset_px84v"), SubResource("Terrain3DMeshAsset_elajc"), SubResource("Terrain3DMeshAsset_hom4q"), SubResource("Terrain3DMeshAsset_qqh1g"), SubResource("Terrain3DMeshAsset_e2l1i"), SubResource("Terrain3DMeshAsset_po08g"), SubResource("Terrain3DMeshAsset_mbj5r"), SubResource("Terrain3DMeshAsset_k5poe"), SubResource("Terrain3DMeshAsset_f7mg6"), SubResource("Terrain3DMeshAsset_edfry"), SubResource("Terrain3DMeshAsset_hjymm"), SubResource("Terrain3DMeshAsset_871jc"), SubResource("Terrain3DMeshAsset_1mjga"), SubResource("Terrain3DMeshAsset_7w0tl"), SubResource("Terrain3DMeshAsset_2fn0m"), SubResource("Terrain3DMeshAsset_rbbwx")])
 texture_list = Array[Terrain3DTextureAsset]([SubResource("Terrain3DTextureAsset_04mbe")])
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_se5jn"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_2ldox"]
 render_priority = 0
 shader = ExtResource("6_chrg4")
 shader_parameter/albedo = Color(1, 1, 1, 1)
@@ -316,10 +286,11 @@ buffer = PackedFloat32Array(-0.29467312, 0, 0.9555981, -18.45763, 0, 1, 0, 0, -0
 [node name="Grassland" type="Node3D" unique_id=436767915]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1466312008]
-environment = SubResource("Environment_1")
+environment = ExtResource("1_2ldox")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1946022508]
 transform = Transform3D(-0.5943767, 0.77947974, -0.19780819, -0.093115, 0.17760977, 0.97968245, 0.7987776, 0.6007279, -0.03297293, 0, 30, 0)
+visible = false
 light_color = Color(0.041292302, 0.016664753, 0.0012755732, 1)
 light_energy = 0.7
 light_angular_distance = 1.0
@@ -352,7 +323,7 @@ script = ExtResource("5_gm")
 [node name="SpawnContainer" type="Node" parent="GameManager" unique_id=1224011083]
 
 [node name="Grass" type="MultiMeshInstance3D" parent="." unique_id=1852298074]
-material_override = SubResource("ShaderMaterial_se5jn")
+material_override = SubResource("ShaderMaterial_2ldox")
 multimesh = SubResource("MultiMesh_78frx")
 script = ExtResource("6_sgt")
 grass_strength = 0.528

@@ -41,6 +41,7 @@ extends CharacterBody3D
 @onready var _tp_pivot: Node3D = $ThirdPersonPivot
 @onready var _spring_arm: SpringArm3D = $ThirdPersonPivot/SpringArm3D
 @onready var _tp_camera: Camera3D = $ThirdPersonPivot/SpringArm3D/TPCamera
+@onready var _flashlight: SpotLight3D = $Head/Flashlight
 
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _spawn_settled: bool = false
@@ -135,6 +136,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event is InputEventKey and event.pressed and event.keycode == KEY_V and not event.echo:
 		_set_third_person(not _is_third_person)
+
+	if event is InputEventKey and event.pressed and event.keycode == KEY_F and not event.echo:
+		toggle_flashlight()
 
 	if event.is_action_pressed("ui_cancel"):
 		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
@@ -292,3 +296,17 @@ func _update_animation() -> void:
 	var dt := get_physics_process_delta_time()
 	_current_blend = lerp(_current_blend, target_blend, clampf(anim_blend_speed * dt, 0.0, 1.0))
 	player_model.set_movement_blend(_current_blend)
+
+
+func toggle_flashlight() -> void:
+	if _flashlight:
+		set_flashlight(not _flashlight.visible)
+		# Sync to other players
+		var sync_node := get_node_or_null("PlayerSync")
+		if sync_node and multiplayer.has_multiplayer_peer():
+			sync_node.sync_flashlight(_flashlight.visible)
+
+
+func set_flashlight(enabled: bool) -> void:
+	if _flashlight:
+		_flashlight.visible = enabled

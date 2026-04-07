@@ -18,6 +18,8 @@ var _remote_vel_y: float = 0.0
 var _remote_on_floor: bool = true
 var _current_blend: float = 0.0  # Smoothed animation blend for remote players
 
+var _remote_flashlight: bool = false
+
 var _pos_lerp_speed: float = 12.0
 var _rot_lerp_speed: float = 15.0
 var _anim_blend_speed: float = 8.0  # How fast remote animation blends
@@ -119,3 +121,18 @@ func _rpc_sync_state(pos: Vector3, rot_y: float, head_rot_x: float, h_speed: flo
 	_remote_h_speed = h_speed
 	_remote_vel_y = vel_y
 	_remote_on_floor = on_floor
+
+
+## Called by local player when flashlight is toggled
+func sync_flashlight(enabled: bool) -> void:
+	_rpc_sync_flashlight.rpc(enabled)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _rpc_sync_flashlight(enabled: bool) -> void:
+	var sender_id := multiplayer.get_remote_sender_id()
+	if sender_id != player.get_multiplayer_authority():
+		return
+	_remote_flashlight = enabled
+	if player.has_method("set_flashlight"):
+		player.set_flashlight(enabled)

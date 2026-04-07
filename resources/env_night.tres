@@ -1,0 +1,36 @@
+[gd_resource type="Environment" format=3 uid="uid://ctk2dpenpfpu3"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_night"]
+sky_top_color = Color(0.02, 0.02, 0.06, 1)
+sky_horizon_color = Color(0.05, 0.06, 0.12, 1)
+ground_bottom_color = Color(0.01, 0.01, 0.02, 1)
+ground_horizon_color = Color(0.04, 0.05, 0.08, 1)
+sun_curve = 0.01
+
+[sub_resource type="Sky" id="Sky_night"]
+sky_material = SubResource("ProceduralSkyMaterial_night")
+radiance_size = 2
+
+[resource]
+background_mode = 2
+sky = SubResource("Sky_night")
+ambient_light_source = 2
+ambient_light_color = Color(0.12, 0.14, 0.22, 1)
+ambient_light_energy = 2.77
+reflected_light_source = 1
+tonemap_mode = 2
+tonemap_white = 6.0
+ssao_enabled = true
+ssao_radius = 3.0
+glow_enabled = true
+glow_intensity = 0.5
+glow_strength = 0.9
+glow_bloom = 0.1
+fog_enabled = true
+fog_light_color = Color(0.05, 0.06, 0.1, 1)
+fog_density = 0.0015
+fog_aerial_perspective = 0.6
+adjustment_enabled = true
+adjustment_brightness = 0.55
+adjustment_contrast = 1.1
+adjustment_saturation = 0.6
