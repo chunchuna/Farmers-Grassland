@@ -11,14 +11,36 @@ extends CharacterBody3D
 ## Gravity multiplier
 @export var gravity_multiplier: float = 1.5
 
+@export_group("Third Person Camera")
+## Default camera mode on start (true = third person)
+@export var start_in_third_person: bool = false
+## Distance from the player (SpringArm length)
+@export_range(1.0, 20.0, 0.5) var tp_distance: float = 4.0
+## Vertical offset of the pivot point above player origin
+@export_range(0.5, 3.0, 0.1) var tp_height: float = 1.4
+## Vertical angle offset in degrees (positive = look down)
+@export_range(-30.0, 60.0, 1.0) var tp_pitch_offset: float = 10.0
+## Horizontal offset (positive = right)
+@export_range(-2.0, 2.0, 0.1) var tp_horizontal_offset: float = 0.5
+## Camera FOV in third-person mode
+@export_range(50.0, 120.0, 1.0) var tp_fov: float = 75.0
+## Camera FOV in first-person mode
+@export_range(50.0, 120.0, 1.0) var fp_fov: float = 75.0
+## SpringArm collision margin
+@export_range(0.05, 1.0, 0.05) var tp_collision_margin: float = 0.2
+
 @onready var camera: Camera3D = $Head/Camera3D
 @onready var head: Node3D = $Head
 @onready var player_model: Node3D = $PlayerModel
+@onready var _tp_pivot: Node3D = $ThirdPersonPivot
+@onready var _spring_arm: SpringArm3D = $ThirdPersonPivot/SpringArm3D
+@onready var _tp_camera: Camera3D = $ThirdPersonPivot/SpringArm3D/TPCamera
 
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _spawn_settled: bool = false
 var _settle_frames: int = 0
 var _settle_time: float = 0.0
+var _is_third_person: bool = false
 
 
 func _ready() -> void:
@@ -27,10 +49,14 @@ func _ready() -> void:
 	var is_local := _is_local_player()
 
 	if is_local:
-		camera.make_current()
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-		# Hide own model for first-person view
-		player_model.visible = false
+		# Apply third-person config to scene nodes
+		_apply_tp_config()
+		# Set initial camera mode
+		if start_in_third_person:
+			_set_third_person(true)
+		else:
+			_set_third_person(false)
 		# Enable SimpleGrassTextured interactive mode
 		var sgt := get_node_or_null("/root/SimpleGrass")
 		if sgt:
@@ -63,9 +89,11 @@ func _create_grass_proxy() -> void:
 	proxy.name = "GrassProxy"
 	add_child(proxy)
 	proxy.position = Vector3(0, 0.5, 0)
-	# Exclude layer 17 from main camera so proxy is invisible to player
+	# Exclude layer 17 from both cameras so proxy is invisible to player
 	if camera:
 		camera.cull_mask = camera.cull_mask & ~(1 << 16)
+	if _tp_camera:
+		_tp_camera.cull_mask = _tp_camera.cull_mask & ~(1 << 16)
 
 
 func _set_visual_layer_17(node: Node) -> void:
@@ -88,6 +116,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		# Vertical rotation on the head/camera
 		head.rotate_x(-event.relative.y * mouse_sensitivity)
 		head.rotation.x = clamp(head.rotation.x, deg_to_rad(-89), deg_to_rad(89))
+		# Sync third-person pivot with head vertical look
+		if _is_third_person and _tp_pivot:
+			_tp_pivot.rotation.x = head.rotation.x
+
+	if event is InputEventKey and event.pressed and event.keycode == KEY_V and not event.echo:
+		_set_third_person(not _is_third_person)
 
 	if event.is_action_pressed("ui_cancel"):
 		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
@@ -165,6 +199,35 @@ func _physics_process(delta: float) -> void:
 	var sgt := get_node_or_null("/root/SimpleGrass")
 	if sgt:
 		sgt.set_player_position(global_position)
+
+
+func _apply_tp_config() -> void:
+	if _tp_pivot:
+		_tp_pivot.position.y = tp_height
+	if _spring_arm:
+		_spring_arm.spring_length = tp_distance
+		_spring_arm.margin = tp_collision_margin
+	if _tp_camera:
+		_tp_camera.position.x = tp_horizontal_offset
+		_tp_camera.fov = tp_fov
+	if camera:
+		camera.fov = fp_fov
+
+
+func _set_third_person(enabled: bool) -> void:
+	_is_third_person = enabled
+	if _is_third_person:
+		# Third-person: show model, use TP camera
+		player_model.visible = true
+		_tp_camera.make_current()
+		_tp_pivot.visible = true
+		# Apply pitch offset
+		_spring_arm.rotation.x = deg_to_rad(-tp_pitch_offset)
+	else:
+		# First-person: hide model, use FP camera
+		player_model.visible = false
+		camera.make_current()
+		_tp_pivot.visible = false
 
 
 func _update_animation() -> void:

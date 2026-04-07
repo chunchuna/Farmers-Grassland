@@ -12,8 +12,8 @@ height = 1.8
 [node name="Player" type="CharacterBody3D" unique_id=706888724]
 collision_layer = 2
 script = ExtResource("1_player")
-walk_speed = 3.0
-sprint_speed = 6.0
+walk_speed = 1.5
+sprint_speed = 4.5
 jump_velocity = 3.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=968866624]
@@ -31,6 +31,16 @@ transform = Transform3D(-8.742278e-08, 0, 2, 0, 2, 0, -2, 0, -8.742278e-08, 0, 0
 script = ExtResource("3_walker")
 
 [node name="WalkerMesh" parent="PlayerModel" unique_id=85756638 instance=ExtResource("3_dqkch")]
+
+[node name="ThirdPersonPivot" type="Node3D" parent="." unique_id=1141688807]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, 0)
+
+[node name="SpringArm3D" type="SpringArm3D" parent="ThirdPersonPivot" unique_id=319936021]
+spring_length = 4.0
+margin = 0.2
+
+[node name="TPCamera" type="Camera3D" parent="ThirdPersonPivot/SpringArm3D" unique_id=1024297918]
+far = 500.0
 
 [node name="PlayerSync" type="Node" parent="." unique_id=1738558593]
 script = ExtResource("2_sync")
