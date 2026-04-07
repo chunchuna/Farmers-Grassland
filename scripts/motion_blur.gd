@@ -3,8 +3,8 @@ extends ColorRect
 ## Motion blur driven by camera rotation velocity.
 ## Attach this to a ColorRect that covers the full screen.
 
-@export var blur_scale: float = 0.05
-@export var smoothing: float = 10.0
+@export var blur_scale: float = 0.15
+@export var smoothing: float = 3.0
 
 var _prev_rotation := Vector3.ZERO
 var _blur_velocity := Vector2.ZERO
@@ -33,6 +33,6 @@ func _process(delta: float) -> void:
 	_blur_velocity = _blur_velocity.lerp(target_vel, clampf(smoothing * delta, 0.0, 1.0))
 
 	# Clamp to avoid extreme blur
-	_blur_velocity = _blur_velocity.clampf(-0.05, 0.05)
+	_blur_velocity = _blur_velocity.clampf(-0.08, 0.08)
 
 	_material.set_shader_parameter("blur_velocity", _blur_velocity)
