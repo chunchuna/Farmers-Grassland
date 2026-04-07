@@ -14,6 +14,8 @@ extends CharacterBody3D
 @export_group("Animation")
 ## How fast animations blend between states (higher = snappier, lower = smoother)
 @export_range(1.0, 20.0, 0.5) var anim_blend_speed: float = 5.0
+## How fast the player model rotates to face movement direction in third-person (degrees/sec)
+@export_range(180.0, 1440.0, 10.0) var tp_turn_speed: float = 720.0
 
 @export_group("Third Person Camera")
 ## Default camera mode on start (true = third person)
@@ -46,6 +48,9 @@ var _settle_frames: int = 0
 var _settle_time: float = 0.0
 var _is_third_person: bool = false
 var _current_blend: float = 0.0
+## Camera yaw for third-person (decoupled from body)
+var _tp_camera_yaw: float = 0.0
+var _tp_camera_pitch: float = 0.0
 
 
 func _ready() -> void:
@@ -116,14 +121,16 @@ func _is_local_player() -> bool:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		# Horizontal rotation on the body
-		rotate_y(-event.relative.x * mouse_sensitivity)
-		# Vertical rotation on the head/camera
-		head.rotate_x(-event.relative.y * mouse_sensitivity)
-		head.rotation.x = clamp(head.rotation.x, deg_to_rad(-89), deg_to_rad(89))
-		# Sync third-person pivot with head vertical look
-		if _is_third_person and _tp_pivot:
-			_tp_pivot.rotation.x = head.rotation.x
+		if _is_third_person:
+			# Third-person: mouse rotates the CAMERA pivot only (world-space, top_level)
+			_tp_camera_yaw -= event.relative.x * mouse_sensitivity
+			_tp_camera_pitch -= event.relative.y * mouse_sensitivity
+			_tp_camera_pitch = clamp(_tp_camera_pitch, deg_to_rad(-60), deg_to_rad(60))
+		else:
+			# First-person: mouse rotates the body + head (original behavior)
+			rotate_y(-event.relative.x * mouse_sensitivity)
+			head.rotate_x(-event.relative.y * mouse_sensitivity)
+			head.rotation.x = clamp(head.rotation.x, deg_to_rad(-89), deg_to_rad(89))
 
 	if event is InputEventKey and event.pressed and event.keycode == KEY_V and not event.echo:
 		_set_third_person(not _is_third_person)
@@ -186,7 +193,15 @@ func _physics_process(delta: float) -> void:
 		input_dir.x += 1.0
 
 	input_dir = input_dir.normalized()
-	var direction := (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
+
+	var direction: Vector3
+	if _is_third_person:
+		# Third-person: movement is relative to CAMERA direction, not body
+		var cam_basis := Basis(Vector3.UP, _tp_camera_yaw)
+		direction = (cam_basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
+	else:
+		# First-person: movement relative to body
+		direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 
 	if direction:
 		velocity.x = direction.x * speed
@@ -196,6 +211,18 @@ func _physics_process(delta: float) -> void:
 		velocity.z = move_toward(velocity.z, 0, speed * 5.0 * delta)
 
 	move_and_slide()
+
+	# Third-person: smoothly rotate BODY to face movement direction
+	if _is_third_person and direction.length() > 0.1:
+		var target_angle := atan2(-direction.x, -direction.z)
+		var current_angle := rotation.y
+		var turn_amount := deg_to_rad(tp_turn_speed) * delta
+		rotation.y = lerp_angle(current_angle, target_angle, clampf(turn_amount / max(absf(angle_difference(current_angle, target_angle)), 0.001), 0.0, 1.0))
+
+	# Update third-person camera pivot position & rotation (world-space, top_level)
+	if _is_third_person and _tp_pivot:
+		_tp_pivot.global_position = global_position + Vector3(0, tp_height, 0)
+		_tp_pivot.rotation = Vector3(_tp_camera_pitch, _tp_camera_yaw, 0)
 
 	# Drive walker animation blend based on horizontal speed
 	_update_animation()
@@ -207,8 +234,9 @@ func _physics_process(delta: float) -> void:
 
 
 func _apply_tp_config() -> void:
+	# Make pivot independent of body rotation (world-space)
 	if _tp_pivot:
-		_tp_pivot.position.y = tp_height
+		_tp_pivot.top_level = true
 	if _spring_arm:
 		_spring_arm.spring_length = tp_distance
 		_spring_arm.margin = tp_collision_margin
@@ -222,17 +250,24 @@ func _apply_tp_config() -> void:
 func _set_third_person(enabled: bool) -> void:
 	_is_third_person = enabled
 	if _is_third_person:
-		# Third-person: show model, use TP camera
+		# Sync camera yaw/pitch from current first-person view
+		_tp_camera_yaw = rotation.y
+		_tp_camera_pitch = clamp(head.rotation.x, deg_to_rad(-60), deg_to_rad(60))
+		# Position pivot immediately
+		_tp_pivot.global_position = global_position + Vector3(0, tp_height, 0)
+		_tp_pivot.rotation = Vector3(_tp_camera_pitch, _tp_camera_yaw, 0)
+		# Show model, activate TP camera
 		player_model.visible = true
-		_tp_camera.make_current()
 		_tp_pivot.visible = true
-		# Apply pitch offset
-		_spring_arm.rotation.x = deg_to_rad(-tp_pitch_offset)
+		_tp_camera.make_current()
 	else:
-		# First-person: hide model, use FP camera
+		# Sync body/head from current third-person view
+		rotation.y = _tp_camera_yaw
+		head.rotation.x = clamp(_tp_camera_pitch, deg_to_rad(-89), deg_to_rad(89))
+		# Hide model, activate FP camera
 		player_model.visible = false
-		camera.make_current()
 		_tp_pivot.visible = false
+		camera.make_current()
 
 
 func _update_animation() -> void:
