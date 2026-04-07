@@ -11,6 +11,10 @@ extends CharacterBody3D
 ## Gravity multiplier
 @export var gravity_multiplier: float = 1.5
 
+@export_group("Animation")
+## How fast animations blend between states (higher = snappier, lower = smoother)
+@export_range(1.0, 20.0, 0.5) var anim_blend_speed: float = 5.0
+
 @export_group("Third Person Camera")
 ## Default camera mode on start (true = third person)
 @export var start_in_third_person: bool = false
@@ -41,6 +45,7 @@ var _spawn_settled: bool = false
 var _settle_frames: int = 0
 var _settle_time: float = 0.0
 var _is_third_person: bool = false
+var _current_blend: float = 0.0
 
 
 func _ready() -> void:
@@ -234,12 +239,16 @@ func _update_animation() -> void:
 	if not player_model or not player_model.has_method("set_movement_blend"):
 		return
 	var horizontal_speed := Vector2(velocity.x, velocity.z).length()
-	# Map speed to blend: 0 = idle, walk_speed = 0.5, sprint_speed = 1.0
-	var blend: float
+	# Map speed to blend target: 0 = idle, 0.5 = walk, 1.0 = run
+	var target_blend: float
 	if horizontal_speed < 0.1:
-		blend = 0.0
+		target_blend = 0.0
 	elif horizontal_speed <= walk_speed:
-		blend = remap(horizontal_speed, 0.0, walk_speed, 0.0, 0.5)
+		target_blend = remap(horizontal_speed, 0.0, walk_speed, 0.0, 0.5)
 	else:
-		blend = remap(horizontal_speed, walk_speed, sprint_speed, 0.5, 1.0)
-	player_model.set_movement_blend(blend)
+		target_blend = remap(horizontal_speed, walk_speed, sprint_speed, 0.5, 1.0)
+	target_blend = clampf(target_blend, 0.0, 1.0)
+	# Smoothly interpolate toward target blend
+	var dt := get_physics_process_delta_time()
+	_current_blend = lerp(_current_blend, target_blend, clampf(anim_blend_speed * dt, 0.0, 1.0))
+	player_model.set_movement_blend(_current_blend)
