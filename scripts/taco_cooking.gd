@@ -12,32 +12,32 @@ signal cooking_ended
 @export var raycast_distance: float = 4.0
 
 # ── Ingredient mapping: GLB node name prefix → ingredient id ──
+# Only actual food items — no furniture/structure
 const NODE_TO_INGREDIENT := {
-	"Tortilla": "tortilla",
-	"Meat.001": "meat_asada",
-	"Meat.002": "meat_asada",
-	"Meat.003": "meat_pastor",
-	"Meat.004": "meat_pastor",
+	"Tortilla_0": "tortilla",
+	"Meat_001": "meat_asada",
+	"Meat_002": "meat_asada",
+	"Meat_003": "meat_pastor",
+	"Meat_004": "meat_pastor",
 	"Meat_Shepherd": "meat_shepherd",
 	"shepherd_spinning": "meat_shepherd",
-	"Sauce.": "salsa_roja",
+	"Sauce_001": "salsa_roja",
 	"Sauce_01": "salsa_verde",
 	"Sauce_02": "salsa_verde",
 	"Sauce_03": "salsa_roja",
 	"Sauce_04": "salsa_roja",
 	"Onion_Coriander": "onion_cilantro",
-	"Limon": "limon",
-	"Limon_01": "limon",
+	"Limon_0": "limon",
 	"Plate_Limon": "limon",
-	"Salt.": "salt",
-	"Sal.": "salt",
-	"pepper.": "pepper",
-	"Oil.": "oil",
-	"Soda": "soda",
+	"Salt_": "salt",
+	"Sal_": "salt",
+	"pepper_": "pepper",
+	"Oil_": "oil",
+	"Soda_0": "soda",
 	"Disposable_cups": "soda",
-	"Grill": "grill",
-	"Tacos.": "taco_prepared",
-	"Taco.": "taco_prepared",
+	"Tacos_": "taco_prepared",
+	"Tacos": "taco_prepared",
+	"Taco_": "taco_prepared",
 }
 
 const INGREDIENT_DISPLAY := {
@@ -53,7 +53,6 @@ const INGREDIENT_DISPLAY := {
 	"pepper": "Pepper",
 	"oil": "Oil",
 	"soda": "Soda",
-	"grill": "Grill",
 	"taco_prepared": "Prepared Taco",
 }
 
@@ -63,7 +62,17 @@ var _local_player: CharacterBody3D = null
 var _selected_ingredients: Array[String] = []
 var _aimed_body: StaticBody3D = null
 var _ingredient_bodies: Dictionary = {}  # StaticBody3D -> ingredient_id
+var _body_to_mesh: Dictionary = {}  # StaticBody3D -> MeshInstance3D
+var _ingredient_to_meshes: Dictionary = {}  # ingredient_id -> Array[MeshInstance3D]
 var _queue_manager: Node3D = null
+
+# Highlight / glow
+var _outline_shader: Shader
+var _glow_shader: Shader
+var _current_outline_mesh: MeshInstance3D = null  # The overlay mesh for aimed item
+var _glow_overlays: Array[MeshInstance3D] = []  # Active glow overlays for order hints
+var _fly_tweens: Array[Tween] = []  # Active fly animations
+var _last_order_name: String = ""  # Track current order to avoid redundant glow updates
 
 # UI
 var _hud_layer: CanvasLayer
@@ -80,6 +89,8 @@ var _hint_label: Label
 
 
 func _ready() -> void:
+	_outline_shader = load("res://shaders/ingredient_outline.gdshader") as Shader
+	_glow_shader = load("res://shaders/ingredient_glow.gdshader") as Shader
 	# Wait a frame for the Tacos GLB instance to be fully loaded
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -173,6 +184,10 @@ func _exit_cooking() -> void:
 	var hint_panel: PanelContainer = _hint_label.get_meta("panel")
 	hint_panel.visible = false
 	_result_label.text = ""
+	_remove_outline()
+	_remove_all_glow()
+	_last_order_name = ""
+	_aimed_body = null
 	if _queue_manager:
 		_queue_manager.stop_queue()
 	cooking_ended.emit()
@@ -196,12 +211,18 @@ func _do_raycast() -> void:
 	var result := space.intersect_ray(query)
 
 	if result and result.collider is StaticBody3D and result.collider in _ingredient_bodies:
-		_aimed_body = result.collider
+		var new_body: StaticBody3D = result.collider
+		if new_body != _aimed_body:
+			_remove_outline()
+			_aimed_body = new_body
+			_add_outline(_body_to_mesh.get(_aimed_body) as MeshInstance3D)
 		var ing_id: String = _ingredient_bodies[_aimed_body]
 		var display: String = INGREDIENT_DISPLAY.get(ing_id, ing_id)
 		_aim_label.text = display
 		_aim_label.add_theme_color_override("font_color", Color(1, 0.9, 0.4))
 	else:
+		if _aimed_body:
+			_remove_outline()
 		_aimed_body = null
 		_aim_label.text = ""
 
@@ -210,14 +231,14 @@ func _pick_aimed_ingredient() -> void:
 	if not _aimed_body or _aimed_body not in _ingredient_bodies:
 		return
 	var ing_id: String = _ingredient_bodies[_aimed_body]
-	if ing_id == "grill" or ing_id == "taco_prepared":
-		# Can't pick these directly
-		_result_label.text = "Can't pick that!"
-		return
 	if ing_id not in _selected_ingredients:
 		_selected_ingredients.append(ing_id)
 		_update_picked_display()
 		_result_label.text = "+ " + INGREDIENT_DISPLAY.get(ing_id, ing_id)
+		# Fly animation: clone mesh toward camera
+		var source_mi: MeshInstance3D = _body_to_mesh.get(_aimed_body) as MeshInstance3D
+		if source_mi:
+			_fly_ingredient_to_camera(source_mi)
 
 
 # ── Queue-based order system ──
@@ -256,11 +277,21 @@ func _serve_taco() -> void:
 func _update_front_order() -> void:
 	if not _queue_manager:
 		_order_label.text = "[color=gray]Waiting for customers...[/color]"
+		_remove_all_glow()
+		_last_order_name = ""
 		return
 	var order: Dictionary = _queue_manager.get_front_order()
 	if order.is_empty():
 		_order_label.text = "[color=gray]Waiting for customers...[/color]"
+		_remove_all_glow()
+		_last_order_name = ""
 		return
+	# Only rebuild text + glow when order changes
+	var order_key: String = order.get("name", "") + str(order.get("required", []))
+	if order_key == _last_order_name:
+		return
+	_last_order_name = order_key
+
 	var text := "[b][color=yellow]ORDER: %s[/color][/b]\n" % order.get("name", "Taco")
 	text += "[color=white]Need:[/color] "
 	var reqs: Array = order.get("required", [])
@@ -278,6 +309,8 @@ func _update_front_order() -> void:
 	var price: int = order.get("price", 0)
 	text += "\n[color=green]Pay: $%d[/color]" % price
 	_order_label.text = text
+	# Glow hint: make required ingredients pulse
+	_add_glow_to_ingredients(reqs)
 
 
 func _update_money_display() -> void:
@@ -347,6 +380,10 @@ func _setup_ingredient_colliders() -> void:
 		body.add_child(col)
 
 		_ingredient_bodies[body] = ing_id
+		_body_to_mesh[body] = mi
+		if ing_id not in _ingredient_to_meshes:
+			_ingredient_to_meshes[ing_id] = []
+		_ingredient_to_meshes[ing_id].append(mi)
 
 
 func _collect_meshes(node: Node, result: Array[Node]) -> void:
@@ -361,6 +398,81 @@ func _match_ingredient(node_name: String) -> String:
 		if node_name.begins_with(prefix):
 			return NODE_TO_INGREDIENT[prefix]
 	return ""
+
+
+# ── Outline highlight (aim) ──
+func _add_outline(mi: MeshInstance3D) -> void:
+	if not mi or not mi.mesh or not _outline_shader:
+		return
+	_remove_outline()
+	var overlay := MeshInstance3D.new()
+	overlay.mesh = mi.mesh
+	overlay.material_override = ShaderMaterial.new()
+	overlay.material_override.shader = _outline_shader
+	overlay.material_override.set_shader_parameter("outline_color", Color(1.0, 1.0, 0.3, 0.9))
+	overlay.material_override.set_shader_parameter("outline_width", 0.015)
+	overlay.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mi.add_child(overlay)
+	_current_outline_mesh = overlay
+
+
+func _remove_outline() -> void:
+	if is_instance_valid(_current_outline_mesh):
+		_current_outline_mesh.queue_free()
+	_current_outline_mesh = null
+
+
+# ── Glow overlay (order hint) ──
+func _add_glow_to_ingredients(required: Array) -> void:
+	_remove_all_glow()
+	for ing_id in required:
+		var meshes: Array = _ingredient_to_meshes.get(ing_id, [])
+		for mi in meshes:
+			if not is_instance_valid(mi) or not mi.mesh:
+				continue
+			var overlay := MeshInstance3D.new()
+			overlay.mesh = mi.mesh
+			var mat := ShaderMaterial.new()
+			mat.shader = _glow_shader
+			mat.set_shader_parameter("glow_color", Color(0.3, 1.0, 0.4, 1.0))
+			mat.set_shader_parameter("glow_intensity", 1.5)
+			mat.set_shader_parameter("pulse_speed", 2.5)
+			mat.render_priority = 1
+			overlay.material_override = mat
+			overlay.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			overlay.transparency = 0.5
+			mi.add_child(overlay)
+			_glow_overlays.append(overlay)
+
+
+func _remove_all_glow() -> void:
+	for ov in _glow_overlays:
+		if is_instance_valid(ov):
+			ov.queue_free()
+	_glow_overlays.clear()
+
+
+# ── Fly ingredient to camera ──
+func _fly_ingredient_to_camera(source_mi: MeshInstance3D) -> void:
+	var cam := get_viewport().get_camera_3d()
+	if not cam or not source_mi.mesh:
+		return
+	# Create a temporary clone
+	var clone := MeshInstance3D.new()
+	clone.mesh = source_mi.mesh
+	clone.global_transform = source_mi.global_transform
+	clone.scale = source_mi.global_transform.basis.get_scale() * 0.6
+	clone.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	get_tree().current_scene.add_child(clone)
+
+	# Tween: fly toward camera over 0.4s, shrink and fade
+	var target_pos := cam.global_position + cam.global_transform.basis * Vector3(0, -0.3, -0.8)
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(clone, "global_position", target_pos, 0.4).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	tween.tween_property(clone, "scale", Vector3.ONE * 0.01, 0.4).set_ease(Tween.EASE_IN)
+	tween.set_parallel(false)
+	tween.tween_callback(clone.queue_free)
 
 
 # ── Utility ──
