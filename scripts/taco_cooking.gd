@@ -66,6 +66,10 @@ var _body_to_mesh: Dictionary = {}  # StaticBody3D -> MeshInstance3D
 var _ingredient_to_meshes: Dictionary = {}  # ingredient_id -> Array[MeshInstance3D]
 var _queue_manager: Node3D = null
 
+# Cinematic intro
+var _intro_played: bool = false
+var _cinematic: CinematicCamera = null
+
 # Highlight / glow
 var _outline_shader: Shader
 var _glow_shader: Shader
@@ -80,11 +84,7 @@ var _hud_layer: CanvasLayer
 var _prompt_label: Label
 var _crosshair: Label
 var _aim_label: Label
-var _order_panel: PanelContainer
-var _order_label: RichTextLabel
-var _picked_label: RichTextLabel
 var _money_label: Label
-var _stats_label: Label
 var _result_label: Label
 var _hint_label: Label
 
@@ -105,6 +105,10 @@ func _process(_delta: float) -> void:
 	if not _prompt_label:
 		return
 
+	# Cinematic playing — skip all cooking logic
+	if _cinematic and _cinematic.is_playing():
+		return
+
 	if not _is_cooking:
 		_check_proximity()
 		return
@@ -117,6 +121,9 @@ func _process(_delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	# Block input during cinematic
+	if _cinematic and _cinematic.is_playing():
+		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_E:
 			if _is_cooking:
@@ -127,7 +134,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			_serve_taco()
 		elif event.keycode == KEY_R and _is_cooking:
 			_selected_ingredients.clear()
-			_update_picked_display()
+			_result_label.text = "Cleared"
+			_refresh_glow()
+			_update_front_customer_bubble()
 		elif event.keycode == KEY_ESCAPE and _is_cooking:
 			_exit_cooking()
 
@@ -146,6 +155,11 @@ func _check_proximity() -> void:
 	var dist := _xz_distance(_local_player.global_position, global_position)
 	prompt_panel.visible = dist < interact_distance
 
+	# First-time approach: play cinematic intro
+	if not _intro_played and dist < interact_distance:
+		_intro_played = true
+		_start_intro()
+
 
 func _try_enter_cooking() -> void:
 	_local_player = _find_local_player()
@@ -156,20 +170,42 @@ func _try_enter_cooking() -> void:
 	_enter_cooking()
 
 
+# ── Cinematic intro ──
+func _start_intro() -> void:
+	_local_player = _find_local_player()
+	if not _local_player:
+		return
+
+	# Find taco stand center
+	var orbit_center := global_position + Vector3(0, 1.0, 0)
+	var stand := get_node_or_null("../Tacos/Taco_stand")
+	if stand:
+		orbit_center = stand.global_position + Vector3(0, 0.5, 0)
+
+	# Create and configure CinematicCamera
+	_cinematic = CinematicCamera.new()
+	add_child(_cinematic)
+	_cinematic.play_orbit(orbit_center, 6.0, 3.5, 3.0)
+
+	# Hide prompt during intro
+	var prompt_panel: PanelContainer = _prompt_label.get_meta("panel")
+	prompt_panel.visible = false
+
+
 func _enter_cooking() -> void:
 	_is_cooking = true
 	var prompt_panel: PanelContainer = _prompt_label.get_meta("panel")
 	prompt_panel.visible = false
-	_order_panel.visible = true
 	_crosshair.visible = true
 	var aim_panel: PanelContainer = _aim_label.get_meta("panel")
 	aim_panel.visible = true
 	var hint_panel: PanelContainer = _hint_label.get_meta("panel")
 	hint_panel.visible = true
+	var money_panel: PanelContainer = _money_label.get_meta("panel")
+	money_panel.visible = true
 	_selected_ingredients.clear()
-	_update_picked_display()
-	_update_money_display()
 	_result_label.text = ""
+	_update_money_display()
 	if _queue_manager:
 		_queue_manager.start_queue()
 	cooking_started.emit()
@@ -177,17 +213,19 @@ func _enter_cooking() -> void:
 
 func _exit_cooking() -> void:
 	_is_cooking = false
-	_order_panel.visible = false
 	_crosshair.visible = false
 	var aim_panel: PanelContainer = _aim_label.get_meta("panel")
 	aim_panel.visible = false
 	_aim_label.text = ""
 	var hint_panel: PanelContainer = _hint_label.get_meta("panel")
 	hint_panel.visible = false
+	var money_panel: PanelContainer = _money_label.get_meta("panel")
+	money_panel.visible = false
 	_result_label.text = ""
 	_remove_outline()
 	_remove_all_glow()
 	_last_order_name = ""
+	_current_order_reqs = []
 	_aimed_body = null
 	if _queue_manager:
 		_queue_manager.stop_queue()
@@ -234,14 +272,16 @@ func _pick_aimed_ingredient() -> void:
 	var ing_id: String = _ingredient_bodies[_aimed_body]
 	if ing_id not in _selected_ingredients:
 		_selected_ingredients.append(ing_id)
-		_update_picked_display()
 		_result_label.text = "+ " + INGREDIENT_DISPLAY.get(ing_id, ing_id)
+		_result_label.add_theme_color_override("font_color", Color(0.2, 1.0, 0.3))
 		# Fly animation: clone mesh toward camera
 		var source_mi: MeshInstance3D = _body_to_mesh.get(_aimed_body) as MeshInstance3D
 		if source_mi:
 			_fly_ingredient_to_camera(source_mi)
 		# Refresh glow: already-picked items stop glowing
 		_refresh_glow()
+		# Update NPC bubble colors
+		_update_front_customer_bubble()
 
 
 # ── Queue-based order system ──
@@ -273,47 +313,30 @@ func _serve_taco() -> void:
 		_result_label.add_theme_color_override("font_color", Color.RED)
 		_result_label.text = result.get("message", "No customer!")
 	_selected_ingredients.clear()
-	_update_picked_display()
+	_last_order_name = ""  # Force order refresh for next customer
 	_update_money_display()
+	_update_front_customer_bubble()
 
 
 func _update_front_order() -> void:
 	if not _queue_manager:
-		_order_label.text = "[color=gray]Waiting for customers...[/color]"
 		_remove_all_glow()
 		_last_order_name = ""
 		_current_order_reqs = []
 		return
-	var order: Dictionary = _queue_manager.get_front_order()
-	if order.is_empty():
-		_order_label.text = "[color=gray]Waiting for customers...[/color]"
+	var cur_order: Dictionary = _queue_manager.get_front_order()
+	if cur_order.is_empty():
 		_remove_all_glow()
 		_last_order_name = ""
 		_current_order_reqs = []
 		return
-	# Only rebuild text when order changes
-	var order_key: String = order.get("name", "") + str(order.get("required", []))
+	# Only refresh glow/bubble when order changes
+	var order_key: String = cur_order.get("name", "") + str(cur_order.get("required", []))
 	if order_key != _last_order_name:
 		_last_order_name = order_key
-		var text := "[b][color=yellow]ORDER: %s[/color][/b]\n" % order.get("name", "Taco")
-		text += "[color=white]Need:[/color] "
-		_current_order_reqs = order.get("required", [])
-		var req_names: Array[String] = []
-		for r in _current_order_reqs:
-			req_names.append(INGREDIENT_DISPLAY.get(r, r))
-		text += ", ".join(req_names)
-		var bon: Array = order.get("bonus", [])
-		if not bon.is_empty():
-			text += "\n[color=cyan]Bonus:[/color] "
-			var bon_names: Array[String] = []
-			for b in bon:
-				bon_names.append(INGREDIENT_DISPLAY.get(b, b))
-			text += ", ".join(bon_names)
-		var price: int = order.get("price", 0)
-		text += "\n[color=green]Pay: $%d[/color]" % price
-		_order_label.text = text
-		# Refresh glow for new order
+		_current_order_reqs = cur_order.get("required", [])
 		_refresh_glow()
+		_update_front_customer_bubble()
 
 
 func _refresh_glow() -> void:
@@ -328,10 +351,8 @@ func _refresh_glow() -> void:
 func _update_money_display() -> void:
 	if not _queue_manager:
 		_money_label.text = "$0"
-		_stats_label.text = ""
 		return
 	_money_label.text = "$%d" % _queue_manager._total_money
-	_stats_label.text = "Served: %d | Lost: %d" % [_queue_manager._customers_served, _queue_manager._customers_angry]
 
 
 func _on_money_changed(_total: int) -> void:
@@ -344,14 +365,12 @@ func _on_customer_lost(_count: int) -> void:
 	_update_money_display()
 
 
-func _update_picked_display() -> void:
-	if _selected_ingredients.is_empty():
-		_picked_label.text = "[color=gray]Aim at food and click to pick...[/color]"
-	else:
-		var names: Array[String] = []
-		for ing in _selected_ingredients:
-			names.append(INGREDIENT_DISPLAY.get(ing, ing))
-		_picked_label.text = "[b]Your Taco:[/b] " + ", ".join(names)
+func _update_front_customer_bubble() -> void:
+	if not _queue_manager:
+		return
+	var front: Node3D = _queue_manager.get_front_customer()
+	if front and front.has_method("update_bubble_colors"):
+		front.update_bubble_colors(_selected_ingredients)
 
 
 # ── Setup colliders on food meshes ──
@@ -569,6 +588,7 @@ func _build_hud() -> void:
 	prompt_style.content_margin_top = 8
 	prompt_style.content_margin_bottom = 8
 	prompt_panel.add_theme_stylebox_override("panel", prompt_style)
+	prompt_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	prompt_panel.visible = false
 	center_box.add_child(prompt_panel)
 
@@ -577,6 +597,7 @@ func _build_hud() -> void:
 	_prompt_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_prompt_label.add_theme_font_size_override("font_size", 26)
 	_prompt_label.add_theme_color_override("font_color", Color(1, 1, 0.7))
+	_prompt_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	prompt_panel.add_child(_prompt_label)
 	# Store panel ref so we can toggle visibility
 	_prompt_label.set_meta("panel", prompt_panel)
@@ -586,6 +607,7 @@ func _build_hud() -> void:
 	_crosshair.text = "+"
 	_crosshair.visible = false
 	_crosshair.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_crosshair.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_crosshair.add_theme_font_size_override("font_size", 36)
 	_crosshair.add_theme_color_override("font_color", Color(1, 1, 1, 0.9))
 	_crosshair.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
@@ -606,6 +628,7 @@ func _build_hud() -> void:
 	aim_style.content_margin_top = 4
 	aim_style.content_margin_bottom = 4
 	aim_panel.add_theme_stylebox_override("panel", aim_style)
+	aim_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	aim_panel.visible = false
 	center_box.add_child(aim_panel)
 
@@ -614,68 +637,53 @@ func _build_hud() -> void:
 	_aim_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_aim_label.add_theme_font_size_override("font_size", 20)
 	_aim_label.add_theme_color_override("font_color", Color(1, 0.9, 0.3))
+	_aim_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	aim_panel.add_child(_aim_label)
 	_aim_label.set_meta("panel", aim_panel)
 
-	# ── Order panel (right side) ──
-	_order_panel = PanelContainer.new()
-	_order_panel.visible = false
-	var panel_style := StyleBoxFlat.new()
-	panel_style.bg_color = Color(0.02, 0.02, 0.05, 0.85)
-	panel_style.corner_radius_top_left = 8
-	panel_style.corner_radius_bottom_left = 8
-	panel_style.content_margin_left = 12
-	panel_style.content_margin_right = 12
-	panel_style.content_margin_top = 10
-	panel_style.content_margin_bottom = 10
-	_order_panel.add_theme_stylebox_override("panel", panel_style)
-	root.add_child(_order_panel)
-	_order_panel.set_anchors_preset(Control.PRESET_RIGHT_WIDE)
-	_order_panel.offset_left = -260
-	_order_panel.offset_top = 40
-	_order_panel.offset_bottom = -40
+	# ── Money label (top-right) ──
+	var money_panel := PanelContainer.new()
+	var money_style := StyleBoxFlat.new()
+	money_style.bg_color = Color(0, 0, 0, 0.6)
+	money_style.corner_radius_top_left = 8
+	money_style.corner_radius_top_right = 8
+	money_style.corner_radius_bottom_left = 8
+	money_style.corner_radius_bottom_right = 8
+	money_style.content_margin_left = 16
+	money_style.content_margin_right = 16
+	money_style.content_margin_top = 8
+	money_style.content_margin_bottom = 8
+	money_panel.add_theme_stylebox_override("panel", money_style)
+	money_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	money_panel.visible = false
+	root.add_child(money_panel)
+	money_panel.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	money_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	money_panel.position = Vector2(-140, 16)
+	money_panel.size = Vector2(120, 40)
 
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 8)
-	_order_panel.add_child(vbox)
-
-	# Money
 	_money_label = Label.new()
 	_money_label.text = "$0"
-	_money_label.add_theme_font_size_override("font_size", 22)
+	_money_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_money_label.add_theme_font_size_override("font_size", 28)
 	_money_label.add_theme_color_override("font_color", Color(0.2, 1.0, 0.3))
-	vbox.add_child(_money_label)
+	_money_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	_money_label.add_theme_constant_override("shadow_offset_x", 2)
+	_money_label.add_theme_constant_override("shadow_offset_y", 2)
+	_money_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	money_panel.add_child(_money_label)
+	_money_label.set_meta("panel", money_panel)
 
-	# Stats
-	_stats_label = Label.new()
-	_stats_label.text = "Served: 0 | Lost: 0"
-	_stats_label.add_theme_font_size_override("font_size", 14)
-	_stats_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
-	vbox.add_child(_stats_label)
-
-	# Order
-	_order_label = RichTextLabel.new()
-	_order_label.bbcode_enabled = true
-	_order_label.fit_content = true
-	_order_label.custom_minimum_size = Vector2(230, 60)
-	vbox.add_child(_order_label)
-
-	# Divider
-	var sep := HSeparator.new()
-	vbox.add_child(sep)
-
-	# Picked
-	_picked_label = RichTextLabel.new()
-	_picked_label.bbcode_enabled = true
-	_picked_label.fit_content = true
-	_picked_label.custom_minimum_size = Vector2(230, 40)
-	vbox.add_child(_picked_label)
-
-	# Result
+	# ── Result label (center, below crosshair area) ──
 	_result_label = Label.new()
+	_result_label.text = ""
 	_result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_result_label.add_theme_font_size_override("font_size", 16)
-	vbox.add_child(_result_label)
+	_result_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_result_label.add_theme_font_size_override("font_size", 20)
+	_result_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	_result_label.add_theme_constant_override("shadow_offset_x", 1)
+	_result_label.add_theme_constant_override("shadow_offset_y", 1)
+	center_box.add_child(_result_label)
 
 	# Hint (bottom center with background)
 	var hint_panel := PanelContainer.new()
@@ -690,6 +698,7 @@ func _build_hud() -> void:
 	hint_style.content_margin_top = 6
 	hint_style.content_margin_bottom = 6
 	hint_panel.add_theme_stylebox_override("panel", hint_style)
+	hint_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hint_panel.visible = false
 	root.add_child(hint_panel)
 	hint_panel.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
@@ -701,6 +710,7 @@ func _build_hud() -> void:
 	_hint_label = Label.new()
 	_hint_label.text = "[Space] Serve | [R] Clear | [E/Esc] Exit"
 	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_hint_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_hint_label.add_theme_font_size_override("font_size", 16)
 	_hint_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.9))
 	hint_panel.add_child(_hint_label)

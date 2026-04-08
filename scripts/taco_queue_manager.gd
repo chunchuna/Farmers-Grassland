@@ -10,6 +10,8 @@ extends Node3D
 @export var customer_patience: float = 60.0
 @export var queue_spacing: float = 1.4
 @export var customer_scale: float = 0.5
+@export var bubble_font_size: int = 28
+@export var bubble_ingredient_font_size: int = 22
 
 # Queue origin: read from GuKePoint Marker3D at runtime
 var _queue_origin: Vector3 = Vector3.ZERO
@@ -260,6 +262,8 @@ func _spawn_customer() -> void:
 	# Setup and spawn
 	customer.global_position = spawn_pos
 	customer.setup(order_data, queue_pos, _queue_origin + leave_offset, customer_patience)
+	customer.bubble_name_font_size = bubble_font_size
+	customer.bubble_ingredient_font_size = bubble_ingredient_font_size
 	customer.walk_speed = randf_range(1.5, 2.5)
 	customer.queue_index = queue_idx
 

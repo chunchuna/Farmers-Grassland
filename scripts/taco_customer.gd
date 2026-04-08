@@ -12,10 +12,14 @@ var walk_speed: float = 2.0
 var order: Dictionary = {}
 var patience: float = 60.0
 var _patience_timer: float = 0.0
-var _order_bubble: Label3D = null
+var _order_bubble: Label3D = null  # Shows order name
+var _ingredient_labels: Array[Label3D] = []  # Per-ingredient labels
+var _ingredient_ids: Array[String] = []  # Matching ingredient IDs
 var _money_label: Label3D = null
 var queue_index: int = 0
 var _angry_delay: float = 0.0
+var bubble_name_font_size: int = 28
+var bubble_ingredient_font_size: int = 22
 
 signal order_ready(customer: Node3D)
 signal customer_left(customer: Node3D)
@@ -37,8 +41,8 @@ func _ready() -> void:
 	_order_bubble.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_order_bubble.no_depth_test = true
 	_order_bubble.modulate = Color(1, 1, 1, 0.95)
-	_order_bubble.font_size = 48
-	_order_bubble.outline_size = 8
+	_order_bubble.font_size = bubble_name_font_size
+	_order_bubble.outline_size = 6
 	_order_bubble.position = Vector3(0, 2.2, 0)
 	_order_bubble.visible = false
 	add_child(_order_bubble)
@@ -148,19 +152,54 @@ func _xz_dist(a: Vector3, b: Vector3) -> float:
 	return Vector2(a.x, a.z).distance_to(Vector2(b.x, b.z))
 
 
+const _DISPLAY_MAP := {
+	"tortilla": "Tortilla", "meat_asada": "Asada", "meat_pastor": "Pastor",
+	"meat_shepherd": "Shepherd", "onion_cilantro": "Onion", "salsa_verde": "S.Verde",
+	"salsa_roja": "S.Roja", "limon": "Lime", "salt": "Salt", "pepper": "Pepper",
+	"oil": "Oil", "soda": "Soda", "taco_prepared": "Taco",
+}
+
+
 func _show_order_bubble() -> void:
 	if order.is_empty():
 		return
-	# Show short ingredient list
-	var req: Array = order.get("required", [])
-	var display_map := {
-		"tortilla": "Tort", "meat_asada": "Asada", "meat_pastor": "Pastor",
-		"meat_shepherd": "Shep", "onion_cilantro": "Onion", "salsa_verde": "S.Verde",
-		"salsa_roja": "S.Roja", "limon": "Lime", "salt": "Salt", "pepper": "Pepper",
-	}
-	var parts: Array[String] = []
-	for r in req:
-		parts.append(display_map.get(r, r))
-	_order_bubble.text = order.get("name", "Taco") + "\n" + " + ".join(parts)
-	_order_bubble.modulate = Color(1, 1, 1, 0.95)
+	# Clear old ingredient labels
+	for lbl in _ingredient_labels:
+		if is_instance_valid(lbl):
+			lbl.queue_free()
+	_ingredient_labels.clear()
+	_ingredient_ids.clear()
+
+	# Order name
+	_order_bubble.text = order.get("name", "Taco")
+	_order_bubble.modulate = Color(1, 1, 0.7, 0.95)
 	_order_bubble.visible = true
+
+	# Per-ingredient labels stacked below the name
+	var req: Array = order.get("required", [])
+	var y_offset := -0.35
+	for r in req:
+		var lbl := Label3D.new()
+		lbl.text = _DISPLAY_MAP.get(r, r)
+		lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		lbl.no_depth_test = true
+		lbl.font_size = bubble_ingredient_font_size
+		lbl.outline_size = 4
+		lbl.modulate = Color(1, 1, 1, 0.9)
+		lbl.position = Vector3(0, y_offset, 0)
+		_order_bubble.add_child(lbl)
+		_ingredient_labels.append(lbl)
+		_ingredient_ids.append(r)
+		y_offset -= 0.3
+
+
+func update_bubble_colors(picked_ingredients: Array) -> void:
+	# Color each ingredient label: green if picked, white if not
+	for i in range(_ingredient_labels.size()):
+		var lbl := _ingredient_labels[i]
+		if not is_instance_valid(lbl):
+			continue
+		if _ingredient_ids[i] in picked_ingredients:
+			lbl.modulate = Color(0.2, 1.0, 0.3, 1.0)
+		else:
+			lbl.modulate = Color(1, 1, 1, 0.9)
