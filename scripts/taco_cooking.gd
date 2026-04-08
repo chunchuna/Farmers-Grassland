@@ -177,15 +177,33 @@ func _start_intro() -> void:
 		return
 
 	# Find taco stand center
-	var orbit_center := global_position + Vector3(0, 1.0, 0)
+	var look_target := global_position + Vector3(0, 1.0, 0)
 	var stand := get_node_or_null("../Tacos/Taco_stand")
 	if stand:
-		orbit_center = stand.global_position + Vector3(0, 0.5, 0)
+		look_target = stand.global_position + Vector3(0, 0.5, 0)
+
+	# Generate 6 random viewpoints around the stand
+	var points: Array = []
+	for i in range(6):
+		# Random angle around the stand
+		var angle := randf() * TAU
+		# Mix of close (3-5m) and far (6-10m) distances
+		var dist := randf_range(3.0, 10.0)
+		# Random height between 1.5m and 5m
+		var height := randf_range(1.5, 5.0)
+		var base_pos := look_target + Vector3(
+			cos(angle) * dist, height, sin(angle) * dist
+		)
+		# Slow drift: small random offset (0.3-0.8m) for gentle movement
+		var drift := Vector3(
+			randf_range(-0.8, 0.8), randf_range(-0.3, 0.3), randf_range(-0.8, 0.8)
+		)
+		points.append({"from": base_pos, "to": base_pos + drift})
 
 	# Create and configure CinematicCamera
 	_cinematic = CinematicCamera.new()
 	add_child(_cinematic)
-	_cinematic.play_orbit(orbit_center, 6.0, 3.5, 3.0)
+	_cinematic.play_montage(points, look_target, 5.0, 55.0)
 
 	# Hide prompt during intro
 	var prompt_panel: PanelContainer = _prompt_label.get_meta("panel")
