@@ -4,19 +4,19 @@
 [ext_resource type="Script" uid="uid://bacywl8nddhep" path="res://scripts/player_sync.gd" id="2_sync"]
 [ext_resource type="PackedScene" uid="uid://cueynd1oprfjm" path="res://Assest/Walker/walker.glb" id="3_dqkch"]
 [ext_resource type="Script" uid="uid://b4ncq1rv6vscr" path="res://scripts/walker_model.gd" id="3_walker"]
-[ext_resource type="Shader" path="res://shaders/motion_blur.gdshader" id="4_mblur_shader"]
-[ext_resource type="Script" path="res://scripts/motion_blur.gd" id="5_mblur_script"]
-[ext_resource type="Script" path="res://scripts/camera_sway.gd" id="6_sway"]
+[ext_resource type="Shader" uid="uid://ddrg0h3l14w3m" path="res://shaders/motion_blur.gdshader" id="4_mblur_shader"]
+[ext_resource type="Script" uid="uid://vjmvlya8klfa" path="res://scripts/motion_blur.gd" id="5_mblur_script"]
+[ext_resource type="Script" uid="uid://kxhicpnpnebw" path="res://scripts/camera_sway.gd" id="6_sway"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_col"]
+radius = 0.35
+height = 1.8
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_mblur"]
 shader = ExtResource("4_mblur_shader")
 shader_parameter/blur_velocity = Vector2(0, 0)
 shader_parameter/samples = 8
 shader_parameter/intensity = 0.5
-
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_col"]
-radius = 0.35
-height = 1.8
 
 [node name="Player" type="CharacterBody3D" unique_id=706888724]
 collision_layer = 2
@@ -33,28 +33,19 @@ shape = SubResource("CapsuleShape3D_col")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
 
 [node name="Camera3D" type="Camera3D" parent="Head" unique_id=1906404454]
-script = ExtResource("6_sway")
 far = 500.0
-attributes/dof_blur_far_enabled = true
-attributes/dof_blur_far_distance = 80.0
-attributes/dof_blur_far_transition = 40.0
-attributes/dof_blur_amount = 0.02
+script = ExtResource("6_sway")
 
-[node name="Flashlight" type="SpotLight3D" parent="Head"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, -0.1, -0.3)
+[node name="Flashlight" type="OmniLight3D" parent="Head" unique_id=930920868]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15, -0.3, -1.5)
 visible = false
-light_color = Color(1, 0.95, 0.85, 1)
+light_color = Color(1, 0.95, 0.88, 1)
 light_energy = 3.0
-shadow_enabled = true
-shadow_bias = 1.0
-shadow_normal_bias = 10.0
-spot_range = 30.0
-spot_attenuation = 0.5
-spot_angle = 25.0
-spot_angle_attenuation = 0.8
-light_volumetric_fog_energy = 2.0
+light_volumetric_fog_energy = 0.0
+omni_range = 15.0
+omni_attenuation = 1.5
 
-[node name="FlashlightBounce" type="OmniLight3D" parent="."]
+[node name="FlashlightBounce" type="OmniLight3D" parent="." unique_id=285141616]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -1.5)
 visible = false
 light_color = Color(0.9, 0.88, 0.8, 1)
@@ -77,18 +68,14 @@ margin = 0.2
 
 [node name="TPCamera" type="Camera3D" parent="ThirdPersonPivot/SpringArm3D" unique_id=1024297918]
 far = 500.0
-attributes/dof_blur_far_enabled = true
-attributes/dof_blur_far_distance = 60.0
-attributes/dof_blur_far_transition = 30.0
-attributes/dof_blur_amount = 0.03
 
 [node name="PlayerSync" type="Node" parent="." unique_id=1738558593]
 script = ExtResource("2_sync")
 
-[node name="MotionBlurLayer" type="CanvasLayer" parent="."]
+[node name="MotionBlurLayer" type="CanvasLayer" parent="." unique_id=576605907]
 layer = 10
 
-[node name="MotionBlurRect" type="ColorRect" parent="MotionBlurLayer"]
+[node name="MotionBlurRect" type="ColorRect" parent="MotionBlurLayer" unique_id=2020398121]
 material = SubResource("ShaderMaterial_mblur")
 anchors_preset = 15
 anchor_right = 1.0
@@ -101,7 +88,6 @@ script = ExtResource("5_mblur_script")
 [node name="NameLabel" type="Label3D" parent="." unique_id=1887436803]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13747656, 2.2507885, -0.16123232)
 billboard = 1
-shaded = false
 no_depth_test = true
 modulate = Color(1, 1, 1, 0.9)
 text = "Player"

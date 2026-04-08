@@ -1,13 +1,87 @@
-[gd_scene format=3 uid="uid://d3pf1twn8ywrf"]
+[gd_scene format=4 uid="uid://d3pf1twn8ywrf"]
 
 [ext_resource type="Environment" uid="uid://ctk2dpenpfpu3" path="res://resources/env_night.tres" id="1_riarh"]
+[ext_resource type="Texture2D" uid="uid://dfyu3t5ouco6w" path="res://Assest/taco/Tacos/Models/Tacos_Sidewalk.jpg" id="3_v63m6"]
+[ext_resource type="Texture2D" uid="uid://b228lt12trjda" path="res://Assest/taco/Tacos/Models/Tacos_road.jpg" id="4_7vhly"]
 [ext_resource type="PackedScene" uid="uid://cr0l5rjk5ooyn" path="res://Assest/taco/Tacos/Models/Tacos.glb" id="asset_6"]
+[ext_resource type="Script" uid="uid://cgc7wgs8otdlo" path="res://scripts/taco_cooking.gd" id="cook_7"]
 [ext_resource type="Script" uid="uid://c8thgl1c4sdsd" path="res://scripts/chat_system.gd" id="cs_5"]
 [ext_resource type="Script" uid="uid://dhetcbdynsu7f" path="res://scripts/debug_panel.gd" id="dp_4"]
 [ext_resource type="Script" uid="uid://d1m7g5qnsqxhi" path="res://scripts/game_manager.gd" id="gm_2"]
 [ext_resource type="Script" uid="uid://cr7nva4gacihu" path="res://scripts/psx_effect.gd" id="psx_script"]
 [ext_resource type="Shader" uid="uid://drpqfbomo6oob" path="res://shaders/psx_pixelation.gdshader" id="psx_shader"]
+[ext_resource type="Script" uid="uid://mea48nbdra7w" path="res://scripts/taco_queue_manager.gd" id="qm_8"]
 [ext_resource type="Script" uid="uid://bhw2kv3shqrch" path="res://scripts/weather_system.gd" id="ws_3"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mpyew"]
+resource_name = "Sidewalk"
+cull_mode = 2
+albedo_texture = ExtResource("3_v63m6")
+texture_filter = 2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wkxyn"]
+resource_name = "road"
+cull_mode = 2
+albedo_texture = ExtResource("4_7vhly")
+texture_filter = 2
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_qoc8w"]
+_surfaces = [{
+"aabb": AABB(-8.816467, -0.010889992, -8.816469, 15.567154, 0.06691814, 17.632938),
+"format": 34896613377,
+"index_count": 192,
+"index_data": PackedByteArray("DAANAA4ADAAPAA0ADwAQAA0ADwARABAADQAQABIADQASABMADQATAA4AFAATABIAFAAOABMAFAASABUAFgAUABUAFgAOABQAFgAVABcAGAAWABcAGAAOABYAGAAXABkAGgAYABkAGAAaAA4AGgAZABsAGgAbABwAGgAcAB0ADgAaAB0AHQAcAB4AHQAeAB8ADgAdAB8ADgAfACAAIQAiACMAIwAkACUAIwAiACQAIgAmACQAIQAnACIAIgAoACYAIgAnACgAKQAmACgAKQAoACcAKQAqACYAKwAqACkAKwApACcAKwAsACoALQAsACsALQArACcALQAuACwALwAuAC0ALQAnAC8ALwAwAC4ALwAxADAALwAyADEAJwAyAC8AMgAzADEAMgA0ADMAJwA0ADIAJwA1ADQAAAABAAIAAAADAAEAAgABAAQAAgAEAAUAAgAFAAYAAAACAAcAAgAGAAcABwAGAAgAAAAHAAkABwAIAAoACQAHAAoACQAKAAsA"),
+"lods": [3.285629, PackedByteArray("AAABAAIAAAADAAEAAgABAAQAAgAEAAUAAgAFAAYAAAACAAcAAgAGAAcABwAGAAgAAAAHAAkABwAIAAoACQAHAAoACQAKAAsA")],
+"name": "Sidewalk",
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 54,
+"vertex_data": PackedByteArray("/////wHiAACY2/////8AAJjb//8B4gAA////////AACY2wAA//8AAJjbAAAB4gAAmNsAAP0dAACY2////R0AAJjbAAAAAAAA//////0dAACY2///AAAAAP////8AAAAAAAD//wHiAAD4If//3sEAAPgh//8B4gAAAAD//97BAAD4IQAA3sEAAAAAAADewQAA2CMAANzBAADYI4WM3MEAABgxhYwnxAAAGDEAACfEAABPPIWMwMoAAE88AADAygAAyEOFjKfUAADIQwAAp9QAAGFGhYxZ4AAAYUYAAFngAABfRgAAAeIAAF9G//8B4gAAX0YAAP//AABfRv////8AAPgh/////wAAAAD///0dAAD4If//ID4AAAAA//8gPgAA+CEAACA+AAAAAAAAID4AANgjAAAiPgAA+CH///0dAADYI4WMIj4AABgxhYzXOwAAGDEAANc7AABPPIWMPjUAAE88AAA+NQAAyEOFjFcrAADIQwAAVysAAGFGhYylHwAAYUYAAKUfAABfRgAA/R0AAF9G///9HQAAX0YAAAAAAABfRv//AAAAAPgh//8AAAAA")
+}, {
+"aabb": AABB(-8.816467, -0.010889992, -8.816469, 13.414123, 1e-05, 17.632938),
+"format": 34896613377,
+"index_count": 114,
+"index_data": PackedByteArray("AAABAAIAAAADAAEABAABAAMABAAFAAEAAgABABgAAgAYAAgAGAAJAAgACQAKAAsAGAAZAAkACQAZAAoADAAKABkADAANAAoABwAZABgAAQAHABgAGgAMABkABwAaABkAGgAOAAwADgAaAA8ADwAaAAcADwAHABAAAQAHAAEAAQABAAcAEAAHABsAEAAbABEAEQAbABIAGwATABIABwAcABsAGwAcABMAAQAdAAcABwAdABwABQAdAAEABQAGAB0AHQAGABYAHQAWABwAEwAcABQAFgAUABwAEwAUABUAFgAXABQA"),
+"lods": [0.26056054, PackedByteArray("AAABAAIAAAADAAEABAABAAMABAAFAAEABQAGAAEAAgABAAcAAQAGAAcAAgAHAAgABwAJAAgACQAKAAsABwAKAAkADAANAAoADgAMAAoABwAOAAoADwAOAAcADwAHABAAEAAHABEAEQAHABIABwATABIABwAUABMAEwAUABUABwAGABQABgAWABQAFgAXABQA")],
+"name": "road",
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 30,
+"vertex_data": PackedByteArray("AAAAAN7BAABsJwAA/38AAGwnAADewQAAAAAAAP9/AAAAAAAAID4AAGwnAAAgPgAA/UUwAD41AABBqDAA/38AAP1FMADAygAAq1EwAAHiAABBqDAA//8AAKtRMAD//wAA1v4wAAHiAADW/jAA//8AANf/MADAygAA//8YACGXAADs/wwA/38AANn/GADAaAAA1/8wAD41AADW/jAA/R0AAEGoMAAAAAAA1v4wAAAAAACrUTAA/R0AAKtRMAAAAAAA1mcwAACxAABBqDAAAeIAAKvoMAAAsQAAq+gwAP5OAABBqDAA/R0AANZnMAD+TgAA")
+}]
+blend_shape_mode = 0
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_epdv2"]
+resource_name = "Tacos_Road_007"
+_surfaces = [{
+"aabb": AABB(-8.816467, -0.010889992, -8.816469, 15.567154, 0.06691814, 17.632938),
+"attribute_data": PackedByteArray("O6j/f2SI//87qP//ZIj/f6yK8fWCqs/5rIrP+YKq8fU7qP9/ZIj//2SI/387qP//rIrx9YKqz/mCqvH1rIrP+f//CIJnM+H/ZzMIgv//4f8QM9X0p/+i+Kf/1fQQM6L4O6j/f2SI//9kiP9/O6j//6yK8fWCqs/5gqrx9ayKz/k7qP9/ZIj//2SI/387qP//rIrx9YKqz/mCqvH1rIrP+WSI//+xqc/53Zc0/YKqz/mUj0/+O6j/fzaJ///RmjT9Q5HP+X2Lz/komkf8KJpH/Jeaz/lDkc/5l5kw+5eZMPvro8/5l5rP+cGYR/zBmEf8sanP+eujz/ndlzT90Zo0/ayKz/k7qP//fYvP+WSI//82if//O6j/fzuo/39qp///O6j//3ehT/5qp///O6j/f3ehT/47qP9/xZhT/MWYU/w7qP9/lI9P/juo/39kiP//O6j//2SI/3+sivH1gqrP+ayKz/mCqvH1O6j/f2SI//87qP//ZIj/f6yK8fWCqs/5rIrP+YKq8fVkiP//sanP+YKqz/ndlzT9lI9P/jaJ//87qP9/0Zo0/UORz/komkf8fYvP+SiaR/yXms/5l5kw+0ORz/mXmTD766PP+cGYR/yXms/5wZhH/LGpz/ndlzT966PP+dGaNP2sis/5fYvP+Tuo//9kiP//O6j/fzaJ//87qP9/O6j//2qn//93oU/+O6j/f2qn//93oU/+xZhT/Duo/3/FmFP8lI9P/juo/38="),
+"format": 34896613399,
+"index_count": 192,
+"index_data": PackedByteArray("GAAZABoAGAAbABkAHAAdAB4AHAAfAB0AIAAhACIAIAAjACEAJAAlACYAJAAnACUAKAApACoAKAArACkALAAtAC4ALwAwADEALwAyADAAMwA0ADUAMwA2ADQANwA4ADkANwA6ADgAOwA8AD0AOwA+ADwAPwBAAEEAPwBCAEAAQwBEAEUARgBHAEgASQBKAEsATABNAE4ATwBQAFEAUgBTAFQAUgBVAFMAVgBXAFgAVgBZAFcAWgBbAFwAWgBdAFsAXgBfAGAAXgBhAF8AYgBjAGQAYgBlAGMAZgBnAGgAaQBqAGsAaQBsAGoAbQBuAG8AbQBwAG4AcQByAHMAcQB0AHIAdQB2AHcAdQB4AHYAeQB6AHsAeQB8AHoAfQB+AH8AgACBAIIAgwCEAIUAhgCHAIgAiQCKAIsAAAABAAIAAAADAAEABAAFAAYABAAHAAUACAAJAAoACAALAAkADAANAA4ADAAPAA0AEAARABIAEAATABEAFAAVABYAFAAXABUA"),
+"lods": [3.285629, PackedByteArray("AAABAAIAAAADAAEABAAFAAYABAAHAAUACAAJAAoACAALAAkADAANAA4ADAAPAA0AEAARABIAEAATABEAFAAVABYAFAAXABUA")],
+"material": SubResource("StandardMaterial3D_mpyew"),
+"name": "Sidewalk",
+"primitive": 3,
+"uv_scale": Vector4(5.0285177, 2, 0, 0),
+"vertex_count": 140,
+"vertex_data": PackedByteArray("/////wHiqiqY2/////+qKpjb//8B4qoq////////qiqY2///AeL/v5jbAAD///+/mNsAAAHi/7+Y2///////v//////9HVTVmNv//wAAVNX/////AABU1Zjb///9HVTVmNv///0dAACY2wAAAAAAAJjb//8AAAAAmNsAAP0dAAD/////AeJU1Zjb///9HVTV//////0dVNWY2///AeJU1Zjb//8B4gAAmNsAAP0dAACY2////R0AAJjbAAAB4gAAAAD//wHi///4If//3sH///gh//8B4v//AAD//97B//8AAP//3sEAAPghAADewQAA+CH//97BAAAAAAAA3sEAAPgh//8B4lTVX0b/////VNX4If////9U1V9G//8B4lTVX0b//wHiAABfRgAA//8AAF9G/////wAAX0YAAAHiAAD4If//3sEgANgjAADcwSAA2COFjNzB///4IQAA3sEgABgxhYwnxDA/+CH//wHiMD/YI4WM3MEwP2FGhYxZ4B44yEMAAKfUHThhRgAAWeAeOMhDhYyn1B04yEOFjKfUUP9PPAAAwMpQ/8hDAACn1AsoTzyFjMDKUP9PPIWMwMrzFxgxAAAnxPMXTzwAAMDK8xcYMYWMJ8TzFxgxhYwnxOEH2CMAANzB4QcYMQAAJ8ThB9gjhYzcweEHYUaFjFngIEBfRgAAAeIgQF9G//8B4v//YUYAAFngIED4If//3sFWP9gjhYzcwVY/+CH//wHiVj/4If//AeJGJGFGhYxZ4EYkX0b//wHiRiTIQ4WMp9TpLWFGhYxZ4Okt+CH//wHi6S3IQ4WMp9SmNfgh//8B4qY1TzyFjMDKpjVPPIWMwMqJPPgh//8B4ok8GDGFjCfEiTwAAP///R0AAPgh//8gPgAAAAD//yA+AAD4If///R0AAAAA//8gPgCA+CEAACA+AIAAAAAAID4AgPgh//8gPgCA+CH///0dqipfRv//AACqKl9G///9Haoq+CH//wAAqipfRv///R3/v19GAAAAAP+/X0YAAP0d/79fRv//AAD/v/gh//8gPt9/2CMAACI+33/4IQAAID7//9gjhYwiPt9/GDGFjNc7sr/YI4WMIj6yv/gh///9HbK/YUaFjKUf+//IQwAAVyt7/8hDhYxXK3f/YUYAAKUf///IQ4WMVyv//088AAA+Nf//TzyFjD417VfIQwAAVyv//088hYw+Nfn/GDEAANc7P/8YMYWM1zs5/088AAA+Nf//GDGFjNc7///YIwAAIj6D/9gjhYwiPoD/GDEAANc7//9hRoWMpR/fP19GAAD9Hd8/YUYAAKUf//9fRv///R3fP/gh//8gPrHA+CH///0dscDYI4WMIj6xwPgh///9HZzPX0b///0dnM9hRoWMpR+cz8hDhYxXK1nR+CH///0dWdFhRoWMpR9Z0chDhYxXK3bJTzyFjD41dsn4If///R12yU88hYw+NXHCGDGFjNc7ccL4If///R1xwlTVqipU1aoqVNWqKlTVqir/f////3////9/////f///qaqqqqmqqqqpqqqqqqqqqv8//3//P/9//z//f/8//3+qqqqqqqqqqqqqqqqqqqqq/z//f/8//3//P/9//z//f/9//7//f/+//3//v/9//7////9/////f////3////9/VNWqKlTVqipU1aoqVNWqKv+//3//v/9//7//f/+//3//f////3//////MoD/f///me6ciJnunIiZ7pyI8X8HAB9+BwH/fwAAEX4OAWvSin5r0op+/38AAGvSin4IgAwANoGUAf9/AAA/gaABBYAGAMCA0wD/fwAAxoDZAP9/AAD/fwAA5b//f/9/AACN5Z9yjeWfco3ln3IfrkOuH65Drh+uQ66Ar/qngK/6p4Cv+qdqvJOharyToWq8k6FN0qqWTdKqlk3Sqpb/f/+//3//v/9//7//f/+//3////9/////f////3///6qqqqqqqqqqqqqqqqqqqar/fwAA/38AAP9/AAD/fwAA/3////9////Mf/9//3///xz3ZW4c92VuHPdlbgMAyDl4AJQ5ewCSOcm5/3+frP9/n6z/fyeCLgafrP9/vJ37f6ydtn+snbR/vZ3/f1GL/39Pi+5/T4vtf1GL/3//fwAA/38AABjA/3//fwAAj+Xvco/l73KP5e9yKtm2JirZtiYq2bYmRdcUL0XXFC9F1xQvxd35O8Xd+TvF3fk7xejpUcXo6VHF6OlR")
+}, {
+"aabb": AABB(-8.816467, -0.010889992, -8.816469, 13.414123, 1e-05, 17.632938),
+"attribute_data": PackedByteArray("cfH//4iFV91x8VfdiIX//3Hx//9x8Vfd//94woiFF2z//3jCNulXki2H23I26dtyNulXkjbp23JY6sCqLYc6+W/2wKo26VeSWOrAqi2H23I26dtyb/bAqjbpV5I26dtyw+g6y36IOsuv6I+zrOgef9jorLOs6B5/w+g6y8/Vt6TP1bekiIVX3RzQycUth1eSHNDJxS2HV5Ic0MnFHNDJxTrPVZmv6I+zOs9VmdjorLM="),
+"format": 34896613399,
+"index_count": 114,
+"index_data": PackedByteArray("AAABAAIAAAADAAEABAABAAMABAAFAAEABQAGAB8ABQAfAAEAAgAgAAgAAgABACAAAQAfAAcAAQAHACAAAQAHACEAAQAhAAcACQAKAAsAIgAJABAAIgAjAAkACQAjAAoADwAjACIADAAKACMADAANAAoAJAAMACMADwAkACMAJAAOAAwADwAlACYADwAnACUAJgAlABEAJgARABIAJwAWACUAJwAVABYAEQAlABMAFgATACUAEQATABQAFgAXABMAGAAoABoAGAAZACgAKQAoABsAHAAZAB4AHAAqABkAHQAqACsA"),
+"lods": [0.26056054, PackedByteArray("AAABAAIAAAADAAEABAABAAMABAAFAAEABQAGAAEAAQAGAAcAAgABAAcAAgAHAAgACQAKAAsADAANAAoADgAMAAoADwAOAAoADwAKAAkADwAJABAADwARABIADwATABEAEQATABQADwAVABMAFQAWABMAFgAXABMAGAAZABoAGgAZABsAHAAdABkAHAAZAB4A")],
+"material": SubResource("StandardMaterial3D_wkxyn"),
+"name": "road",
+"primitive": 3,
+"uv_scale": Vector4(2.228438, 2.3683152, 0, 0),
+"vertex_count": 44,
+"vertex_data": PackedByteArray("AAAAAN7BVNVsJwAA/3+qKmwnAADewVTVAAAAAP9/qioAAAAAID6qKmwnAAAgPqoq/UUwAD41qipBqDAA/3+qKv1FMADAylTVq1EwAAHi//9BqDAA////P6tRMAD/////1v4wAAHi/z/W/jAA////P9f/MADAyv8/QagwAP9//7/9RTAAwMr//9b+MAD9Hf+/1/8wAD41/79BqDAAAAD/v9b+MAAAAP+//UUwAD41AACrUTAA/R0AAKtRMAAAAAAA7P8MAP9//79BqDAA/3//P9n/GADAaP+/1/8wAD41/7///xgAIZf/P9f/MADAyv8/7P8MAP9//z/WZzAA/k6qKtZnMAAAsVTVbCcAAP9/VNXWZzAAALH//0GoMAAB4v8/q+gwAACx/z9BqDAA/R3/v6voMAD+Tv+/1mcwAP5OAACr6DAA/k7/v9n/GADAaP+/q+gwAACx/z///xgAIZf/P6qqqqpU1aoqqqqqqlTVqipU1aoqVNWqKlTVqipU1aoqqaqqqv9//7////9//3//v////3////9//v//f////3//f/+/////f/7//3////9/////f/9//7//f/+//3//v////3////9//v//f////3////9/////f////39U1aoqqaqqqqqqqqr/f/+/////f////3////9/////f/9//7////9/////f////3////9/")
+}]
+blend_shape_mode = 0
+shadow_mesh = SubResource("ArrayMesh_qoc8w")
 
 [sub_resource type="BoxShape3D" id="floor_box"]
 size = Vector3(200, 1, 200)
@@ -83,14 +157,102 @@ light_size = 0.205
 omni_range = 6.0
 omni_attenuation = 2.0
 
+[node name="LampLight1" type="OmniLight3D" parent="." unique_id=1981735376]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 9, -2.5)
+light_color = Color(1, 0.9, 0.6, 1)
+light_energy = 3.5
+light_indirect_energy = 0.3
+omni_range = 18.0
+omni_attenuation = 1.5
+
+[node name="LampLight2" type="OmniLight3D" parent="." unique_id=665832495]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.8, 7.8, 3.3)
+light_color = Color(1, 0.9, 0.6, 1)
+light_energy = 3.5
+light_indirect_energy = 0.3
+omni_range = 18.0
+omni_attenuation = 1.5
+
+[node name="LampLight3" type="OmniLight3D" parent="." unique_id=970673136]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.3, 9, -2.5)
+light_color = Color(1, 0.9, 0.6, 1)
+light_energy = 3.0
+light_indirect_energy = 0.2
+omni_range = 18.0
+omni_attenuation = 1.5
+
+[node name="LampLight4" type="OmniLight3D" parent="." unique_id=1523038103]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.7, 8.6, -26.5)
+light_color = Color(1, 0.9, 0.6, 1)
+light_energy = 3.0
+light_indirect_energy = 0.2
+omni_range = 18.0
+omni_attenuation = 1.5
+
+[node name="LampLight5" type="OmniLight3D" parent="." unique_id=1885501898]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38.3, 9, -16.9)
+light_color = Color(1, 0.9, 0.6, 1)
+light_energy = 2.5
+light_indirect_energy = 0.2
+omni_range = 16.0
+omni_attenuation = 1.5
+
+[node name="LampLight6" type="OmniLight3D" parent="." unique_id=1172957273]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 37.9, 8.3, -17.1)
+light_color = Color(1, 0.9, 0.6, 1)
+light_energy = 2.5
+light_indirect_energy = 0.2
+omni_range = 16.0
+omni_attenuation = 1.5
+
+[node name="LampLight7" type="OmniLight3D" parent="." unique_id=587251362]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.7, 8.6, -57.5)
+light_color = Color(1, 0.9, 0.6, 1)
+light_energy = 2.5
+light_indirect_energy = 0.2
+omni_range = 16.0
+omni_attenuation = 1.5
+
+[node name="LampLight8" type="OmniLight3D" parent="." unique_id=275507676]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23.4, 9, -70.6)
+light_color = Color(1, 0.9, 0.6, 1)
+light_energy = 2.0
+light_indirect_energy = 0.2
+omni_range = 16.0
+omni_attenuation = 1.5
+
+[node name="LampLight9" type="OmniLight3D" parent="." unique_id=1575912583]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23.4, 9, 56.2)
+light_color = Color(1, 0.9, 0.6, 1)
+light_energy = 2.0
+light_indirect_energy = 0.2
+omni_range = 16.0
+omni_attenuation = 1.5
+
 [node name="Tacos" parent="." unique_id=1788005954 instance=ExtResource("asset_6")]
 transform = Transform3D(1.01, 0, 0, 0, 1.01, 0, 0, 0, 1.01, 0, 0, 0)
+
+[node name="Road_003" parent="Tacos" index="100" unique_id=1003373730]
+transform = Transform3D(-1.4720485, 0, 0, 0, 1.4720485, 0, 0, 0, 1.4720485, 30.559366, -0.5665591, -9.657732)
+visible = false
+
+[node name="Road_019" type="MeshInstance3D" parent="Tacos" unique_id=1998889751]
+transform = Transform3D(2.1669269, 0, 0, 0, 2.1669269, 0, 0, 0, 2.1669269, 48.191345, -0.12199999, -12.072998)
+mesh = SubResource("ArrayMesh_epdv2")
+
+[node name="Road_019" type="MeshInstance3D" parent="Tacos/Road_019" unique_id=726721643]
+transform = Transform3D(2.1669264, 0, 0, 0, 2.1669264, 0, 0, 0, 2.1669264, 5.732437, -0.121999964, 0)
+mesh = SubResource("ArrayMesh_epdv2")
 
 [node name="FloorCollision" type="StaticBody3D" parent="." unique_id=1025458298]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="FloorCollision" unique_id=926764036]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 shape = SubResource("floor_box")
+
+[node name="GuKePoint" type="Marker3D" parent="." unique_id=1406003561]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5996957, 0.22273314, -18.011377)
+gizmo_extents = 1.5
 
 [node name="SpawnPoint" type="Marker3D" parent="." unique_id=2023437101]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
@@ -103,6 +265,14 @@ script = ExtResource("gm_2")
 
 [node name="WeatherSystem" type="Node3D" parent="." unique_id=621468780]
 script = ExtResource("ws_3")
+
+[node name="TacoCooking" type="Node3D" parent="." unique_id=110818832]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 1, -15.5)
+script = ExtResource("cook_7")
+
+[node name="TacoQueueManager" type="Node3D" parent="." unique_id=588038172]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 0, -15.5)
+script = ExtResource("qm_8")
 
 [node name="DebugPanel" type="CanvasLayer" parent="." unique_id=1841986886]
 script = ExtResource("dp_4")
