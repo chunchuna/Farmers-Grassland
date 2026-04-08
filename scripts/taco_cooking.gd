@@ -73,6 +73,7 @@ var _current_outline_mesh: MeshInstance3D = null  # The overlay mesh for aimed i
 var _glow_overlays: Array[MeshInstance3D] = []  # Active glow overlays for order hints
 var _fly_tweens: Array[Tween] = []  # Active fly animations
 var _last_order_name: String = ""  # Track current order to avoid redundant glow updates
+var _current_order_reqs: Array = []  # Current order's required ingredients for glow
 
 # UI
 var _hud_layer: CanvasLayer
@@ -239,6 +240,8 @@ func _pick_aimed_ingredient() -> void:
 		var source_mi: MeshInstance3D = _body_to_mesh.get(_aimed_body) as MeshInstance3D
 		if source_mi:
 			_fly_ingredient_to_camera(source_mi)
+		# Refresh glow: already-picked items stop glowing
+		_refresh_glow()
 
 
 # ── Queue-based order system ──
@@ -279,38 +282,47 @@ func _update_front_order() -> void:
 		_order_label.text = "[color=gray]Waiting for customers...[/color]"
 		_remove_all_glow()
 		_last_order_name = ""
+		_current_order_reqs = []
 		return
 	var order: Dictionary = _queue_manager.get_front_order()
 	if order.is_empty():
 		_order_label.text = "[color=gray]Waiting for customers...[/color]"
 		_remove_all_glow()
 		_last_order_name = ""
+		_current_order_reqs = []
 		return
-	# Only rebuild text + glow when order changes
+	# Only rebuild text when order changes
 	var order_key: String = order.get("name", "") + str(order.get("required", []))
-	if order_key == _last_order_name:
-		return
-	_last_order_name = order_key
+	if order_key != _last_order_name:
+		_last_order_name = order_key
+		var text := "[b][color=yellow]ORDER: %s[/color][/b]\n" % order.get("name", "Taco")
+		text += "[color=white]Need:[/color] "
+		_current_order_reqs = order.get("required", [])
+		var req_names: Array[String] = []
+		for r in _current_order_reqs:
+			req_names.append(INGREDIENT_DISPLAY.get(r, r))
+		text += ", ".join(req_names)
+		var bon: Array = order.get("bonus", [])
+		if not bon.is_empty():
+			text += "\n[color=cyan]Bonus:[/color] "
+			var bon_names: Array[String] = []
+			for b in bon:
+				bon_names.append(INGREDIENT_DISPLAY.get(b, b))
+			text += ", ".join(bon_names)
+		var price: int = order.get("price", 0)
+		text += "\n[color=green]Pay: $%d[/color]" % price
+		_order_label.text = text
+		# Refresh glow for new order
+		_refresh_glow()
 
-	var text := "[b][color=yellow]ORDER: %s[/color][/b]\n" % order.get("name", "Taco")
-	text += "[color=white]Need:[/color] "
-	var reqs: Array = order.get("required", [])
-	var req_names: Array[String] = []
-	for r in reqs:
-		req_names.append(INGREDIENT_DISPLAY.get(r, r))
-	text += ", ".join(req_names)
-	var bon: Array = order.get("bonus", [])
-	if not bon.is_empty():
-		text += "\n[color=cyan]Bonus:[/color] "
-		var bon_names: Array[String] = []
-		for b in bon:
-			bon_names.append(INGREDIENT_DISPLAY.get(b, b))
-		text += ", ".join(bon_names)
-	var price: int = order.get("price", 0)
-	text += "\n[color=green]Pay: $%d[/color]" % price
-	_order_label.text = text
-	# Glow hint: make required ingredients pulse
-	_add_glow_to_ingredients(reqs)
+
+func _refresh_glow() -> void:
+	# Glow only ingredients that are required but NOT yet picked
+	var unpicked: Array = []
+	for r in _current_order_reqs:
+		if r not in _selected_ingredients:
+			unpicked.append(r)
+	_add_glow_to_ingredients(unpicked)
 
 
 func _update_money_display() -> void:
@@ -457,21 +469,52 @@ func _fly_ingredient_to_camera(source_mi: MeshInstance3D) -> void:
 	var cam := get_viewport().get_camera_3d()
 	if not cam or not source_mi.mesh:
 		return
-	# Create a temporary clone
-	var clone := MeshInstance3D.new()
-	clone.mesh = source_mi.mesh
-	clone.global_transform = source_mi.global_transform
-	clone.scale = source_mi.global_transform.basis.get_scale() * 0.6
-	clone.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	get_tree().current_scene.add_child(clone)
 
-	# Tween: fly toward camera over 0.4s, shrink and fade
-	var target_pos := cam.global_position + cam.global_transform.basis * Vector3(0, -0.3, -0.8)
+	# Duplicate the entire MeshInstance3D to preserve materials
+	var clone: MeshInstance3D = source_mi.duplicate() as MeshInstance3D
+	# Remove any children (colliders etc.) from the clone
+	for child in clone.get_children():
+		child.queue_free()
+	clone.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+	# Add to scene root so it's independent of parent hierarchy
+	get_tree().current_scene.add_child(clone)
+	# Set world position to match source
+	clone.global_transform = source_mi.global_transform
+
+	# Bright overlay so the flying item stands out
+	var mat := StandardMaterial3D.new()
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.albedo_color = Color(1, 1, 0.6, 0.9)
+	mat.emission_enabled = true
+	mat.emission = Color(1, 0.9, 0.3)
+	mat.emission_energy_multiplier = 3.0
+	clone.material_overlay = mat
+
+	# Start position and target (slightly in front of camera)
+	var start_pos := clone.global_position
+	var target_pos := cam.global_position + cam.global_transform.basis * Vector3(0.0, -0.2, -0.6)
+	# Mid point: arc upward
+	var mid_pos := (start_pos + target_pos) * 0.5 + Vector3(0, 0.8, 0)
+
+	var start_scale := clone.scale
+	var duration := 0.5
+
+	# Phase 1: rise to mid point (0.2s)
 	var tween := create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(clone, "global_position", target_pos, 0.4).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
-	tween.tween_property(clone, "scale", Vector3.ONE * 0.01, 0.4).set_ease(Tween.EASE_IN)
-	tween.set_parallel(false)
+	tween.tween_property(clone, "global_position", mid_pos, duration * 0.4) \
+		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	# Phase 2: fly to camera and shrink (0.3s)
+	tween.tween_property(clone, "global_position", target_pos, duration * 0.6) \
+		.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	# Parallel: scale down and fade
+	var tween2 := create_tween()
+	tween2.tween_property(clone, "scale", start_scale * 0.05, duration) \
+		.set_ease(Tween.EASE_IN)
+	var tween3 := create_tween()
+	tween3.tween_property(mat, "albedo_color:a", 0.0, duration) \
+		.set_ease(Tween.EASE_IN).set_delay(duration * 0.5)
+	# Clean up
 	tween.tween_callback(clone.queue_free)
 
 
